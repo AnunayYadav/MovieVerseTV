@@ -52,7 +52,8 @@ fun GenreCard(genre: GenreItem, onClick: () -> Unit) {
         modifier = Modifier
             .width(180.dp)
             .height(100.dp),
-        shape = CardDefaults.shape(RoundedCornerShape(12.dp))
+        shape = CardDefaults.shape(RoundedCornerShape(12.dp)),
+        scale = CardDefaults.scale(focusedScale = 1.1f)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
