@@ -227,9 +227,24 @@ class HomeViewModel : ViewModel() {
 
     private suspend fun loadTrendingInternal() {
         try {
-            val response = RetrofitClient.tmdbApi.getTrending(page = trendingPage++)
-            trendingMovies.addAll(filterReleased(response.results))
-        } catch (e: Exception) { e.printStackTrace() }
+            // Use specific trending movies for Home carousel
+            val response = RetrofitClient.tmdbApi.getTrendingMovies(page = trendingPage++)
+            val filtered = filterReleased(response.results)
+            if (filtered.isNotEmpty()) {
+                trendingMovies.addAll(filtered)
+            } else {
+                // Fallback to popular if trending is empty or filtered out
+                val popular = RetrofitClient.tmdbApi.getPopularMovies(page = 1)
+                trendingMovies.addAll(filterReleased(popular.results))
+            }
+        } catch (e: Exception) { 
+            e.printStackTrace()
+            // Emergency fallback to popular movies
+            try {
+                val popular = RetrofitClient.tmdbApi.getPopularMovies(page = 1)
+                trendingMovies.addAll(filterReleased(popular.results))
+            } catch (ex: Exception) { ex.printStackTrace() }
+        }
     }
 
     private suspend fun loadPopularInternal() {

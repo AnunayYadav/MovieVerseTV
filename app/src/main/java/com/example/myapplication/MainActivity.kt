@@ -170,27 +170,32 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
         )
     }
 
-    if (viewModel.isLoading && viewModel.trendingMovies.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color.Red)
-        }
-    } else {
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-            // Re-enforce HeroBanner with focusable key
-            key(viewModel.trendingMovies.size) {
-                HeroBanner(movies = viewModel.trendingMovies, onPlayClick = { viewModel.navigateToDetails(it) })
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+        if (viewModel.trendingMovies.isNotEmpty()) {
+            HeroBanner(
+                movies = viewModel.trendingMovies,
+                onPlayClick = { viewModel.navigateToDetails(it) }
+            )
+        } else if (viewModel.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(450.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.Red)
             }
-            
-            MovieRow("Popular Movies", viewModel.popularMovies, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMorePopular() })
-            MovieRow("Netflix Originals", viewModel.netflixHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
-            MovieRow("Prime Video Picks", viewModel.primeHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
-            MovieRow("Disney+ Collection", viewModel.disneyHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
-            MovieRow("Hindi Hits", viewModel.hindiHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
-            MovieRow("South Indian Blockbusters", viewModel.southHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
-            
-            GenreRow("Explore by Genre", movieGenres, viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
-            Spacer(modifier = Modifier.height(48.dp))
         }
+        
+        MovieRow("Popular Movies", viewModel.popularMovies, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMorePopular() })
+        MovieRow("Netflix Originals", viewModel.netflixHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
+        MovieRow("Prime Video Picks", viewModel.primeHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
+        MovieRow("Disney+ Collection", viewModel.disneyHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
+        MovieRow("Hindi Hits", viewModel.hindiHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
+        MovieRow("South Indian Blockbusters", viewModel.southHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
+        
+        GenreRow("Explore by Genre", movieGenres, viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
@@ -210,8 +215,11 @@ fun TvShowsScreenContent(viewModel: HomeViewModel) {
     }
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-        key(viewModel.trendingTv.size) {
-            HeroBanner(movies = viewModel.trendingTv, onPlayClick = { viewModel.navigateToDetails(it) })
+        if (viewModel.trendingTv.isNotEmpty()) {
+            HeroBanner(
+                movies = viewModel.trendingTv,
+                onPlayClick = { viewModel.navigateToDetails(it) }
+            )
         }
         
         MovieRow("Popular TV Shows", viewModel.popularTv, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMorePopularTv() })
@@ -245,8 +253,11 @@ fun AnimeScreenContent(viewModel: HomeViewModel) {
     }
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-        key(viewModel.latestAnime.size) {
-            HeroBanner(movies = viewModel.latestAnime, onPlayClick = { viewModel.navigateToDetails(it) })
+        if (viewModel.latestAnime.isNotEmpty()) {
+            HeroBanner(
+                movies = viewModel.latestAnime,
+                onPlayClick = { viewModel.navigateToDetails(it) }
+            )
         }
         
         MovieRow("Latest Anime", viewModel.latestAnime, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreAnime() })

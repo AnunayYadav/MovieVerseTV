@@ -15,6 +15,12 @@ interface TmdbApi {
         @Query("include_adult") includeAdult: Boolean = false
     ): MovieResponse
 
+    @GET("trending/movie/day")
+    suspend fun getTrendingMovies(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): MovieResponse
+
     @GET("movie/popular")
     suspend fun getPopularMovies(
         @Query("language") language: String = "en-US",
