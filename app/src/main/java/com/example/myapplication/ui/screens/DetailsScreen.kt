@@ -83,7 +83,7 @@ fun DetailsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 58.dp)
         ) {
-            Spacer(modifier = Modifier.height(400.dp))
+            Spacer(modifier = Modifier.height(320.dp))
 
             Text(
                 text = movie.displayTitle,
