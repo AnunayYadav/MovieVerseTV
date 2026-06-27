@@ -189,8 +189,7 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
         if (viewModel.trendingMovies.isNotEmpty()) {
             HeroBanner(
                 movies = viewModel.trendingMovies,
-                onPlayClick = { viewModel.navigateToDetails(it) },
-                modifier = Modifier.focusGroup()
+                onPlayClick = { viewModel.navigateToDetails(it) }
             )
         } else if (viewModel.isLoading) {
             Box(

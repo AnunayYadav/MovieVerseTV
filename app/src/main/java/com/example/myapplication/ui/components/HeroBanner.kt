@@ -12,10 +12,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import com.example.myapplication.model.Movie
-import androidx.compose.foundation.focusGroup
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -36,7 +38,11 @@ fun HeroBanner(
         contentTransformEndToStart = fadeIn().togetherWith(fadeOut())
     ) { index ->
         val movie = movies[index]
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .focusGroup()
+        ) {
             AsyncImage(
                 model = movie.fullBackdropPath,
                 contentDescription = movie.displayTitle,
@@ -68,7 +74,6 @@ fun HeroBanner(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(start = 58.dp, bottom = 64.dp)
-                    .focusGroup()
             ) {
                 Text(
                     text = movie.displayTitle,
@@ -87,7 +92,13 @@ fun HeroBanner(
                 
                 Button(
                     onClick = { onPlayClick(movie) },
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .focusProperties {
+                            // Block horizontal focus exit to prevent jumping to Navbar
+                            left = FocusRequester.Cancel
+                            right = FocusRequester.Cancel
+                        },
                     colors = ButtonDefaults.colors(
                         focusedContainerColor = Color.White,
                         focusedContentColor = Color.Black
