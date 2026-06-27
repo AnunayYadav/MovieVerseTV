@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +23,7 @@ import com.example.myapplication.ui.AppScreen
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.focusGroup
 import com.example.myapplication.ui.components.GenreRow
 import com.example.myapplication.ui.components.GenreItem
 import com.example.myapplication.ui.components.HeroBanner
@@ -189,7 +189,8 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
         if (viewModel.trendingMovies.isNotEmpty()) {
             HeroBanner(
                 movies = viewModel.trendingMovies,
-                onPlayClick = { viewModel.navigateToDetails(it) }
+                onPlayClick = { viewModel.navigateToDetails(it) },
+                modifier = Modifier.focusGroup()
             )
         } else if (viewModel.isLoading) {
             Box(

@@ -14,8 +14,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
-import androidx.compose.foundation.focusGroup
 import com.example.myapplication.model.Movie
+import androidx.compose.foundation.focusGroup
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -31,8 +31,7 @@ fun HeroBanner(
         modifier = modifier
             .fillMaxWidth()
             .height(450.dp)
-            .padding(bottom = 20.dp)
-            .focusGroup(),
+            .padding(bottom = 20.dp),
         contentTransformStartToEnd = fadeIn().togetherWith(fadeOut()),
         contentTransformEndToStart = fadeIn().togetherWith(fadeOut())
     ) { index ->
@@ -68,7 +67,8 @@ fun HeroBanner(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = 58.dp, bottom = 48.dp)
+                    .padding(start = 58.dp, bottom = 64.dp)
+                    .focusGroup()
             ) {
                 Text(
                     text = movie.displayTitle,
@@ -87,7 +87,11 @@ fun HeroBanner(
                 
                 Button(
                     onClick = { onPlayClick(movie) },
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
+                    colors = ButtonDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        focusedContentColor = Color.Black
+                    )
                 ) {
                     Text("Watch Now")
                 }
