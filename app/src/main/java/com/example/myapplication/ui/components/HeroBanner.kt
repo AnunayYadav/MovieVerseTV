@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
-import androidx.compose.ui.focus.focusGroup
+import androidx.compose.foundation.focusGroup
 import com.example.myapplication.model.Movie
 
 @OptIn(ExperimentalTvMaterial3Api::class)

@@ -127,7 +127,7 @@ fun MainScreen(viewModel: HomeViewModel) {
             TabRow(
                 selectedTabIndex = viewModel.selectedTab.ordinal,
                 modifier = Modifier.focusProperties {
-                    enter = {
+                    onEnter = {
                         tabFocusRequesters[viewModel.selectedTab.ordinal]
                     }
                 }
