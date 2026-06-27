@@ -103,7 +103,7 @@ fun MainScreen(viewModel: HomeViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = "https://p-nt-www-2.akamaized.net/media/76be7020-f09b-11ef-807d-53609805908b/02-Logo.jpg",
+                model = R.drawable.logo,
                 contentDescription = "MovieVerse Logo",
                 modifier = Modifier
                     .height(40.dp)
