@@ -29,7 +29,8 @@ fun HeroBanner(
         itemCount = movies.size.coerceAtMost(10),
         modifier = modifier
             .fillMaxWidth()
-            .height(450.dp),
+            .height(450.dp)
+            .padding(bottom = 20.dp),
         contentTransformStartToEnd = fadeIn().togetherWith(fadeOut()),
         contentTransformEndToStart = fadeIn().togetherWith(fadeOut())
     ) { index ->

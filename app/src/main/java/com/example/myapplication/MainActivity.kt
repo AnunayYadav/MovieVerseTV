@@ -125,7 +125,13 @@ fun MainScreen(viewModel: HomeViewModel) {
                 TvTab.entries.forEach { tab ->
                     Tab(
                         selected = viewModel.selectedTab == tab,
-                        onFocus = { viewModel.onTabSelected(tab) },
+                        onFocus = { 
+                            // Only trigger tab change if it's not the already selected one
+                            // to prevent focus jumping when moving up from content
+                            if (viewModel.selectedTab != tab) {
+                                viewModel.onTabSelected(tab) 
+                            }
+                        },
                         onClick = { viewModel.onTabSelected(tab) }
                     ) {
                         Text(
