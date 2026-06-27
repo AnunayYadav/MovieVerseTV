@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
+import androidx.compose.ui.focus.focusGroup
 import com.example.myapplication.model.Movie
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -30,7 +31,8 @@ fun HeroBanner(
         modifier = modifier
             .fillMaxWidth()
             .height(450.dp)
-            .padding(bottom = 20.dp),
+            .padding(bottom = 20.dp)
+            .focusGroup(),
         contentTransformStartToEnd = fadeIn().togetherWith(fadeOut()),
         contentTransformEndToStart = fadeIn().togetherWith(fadeOut())
     ) { index ->

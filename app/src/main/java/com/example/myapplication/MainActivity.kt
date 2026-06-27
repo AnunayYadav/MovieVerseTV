@@ -21,6 +21,9 @@ import coil.compose.AsyncImage
 import com.example.myapplication.ui.HomeViewModel
 import com.example.myapplication.ui.TvTab
 import com.example.myapplication.ui.AppScreen
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import com.example.myapplication.ui.components.GenreRow
 import com.example.myapplication.ui.components.GenreItem
 import com.example.myapplication.ui.components.HeroBanner
@@ -102,6 +105,8 @@ fun GenreScreenContent(viewModel: HomeViewModel) {
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun MainScreen(viewModel: HomeViewModel) {
+    val tabFocusRequesters = remember { List(TvTab.entries.size) { FocusRequester() } }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -121,18 +126,22 @@ fun MainScreen(viewModel: HomeViewModel) {
 
             TabRow(
                 selectedTabIndex = viewModel.selectedTab.ordinal,
+                modifier = Modifier.focusProperties {
+                    enter = {
+                        tabFocusRequesters[viewModel.selectedTab.ordinal]
+                    }
+                }
             ) {
-                TvTab.entries.forEach { tab ->
+                TvTab.entries.forEachIndexed { index, tab ->
                     Tab(
                         selected = viewModel.selectedTab == tab,
                         onFocus = { 
-                            // Only trigger tab change if it's not the already selected one
-                            // to prevent focus jumping when moving up from content
                             if (viewModel.selectedTab != tab) {
                                 viewModel.onTabSelected(tab) 
                             }
                         },
-                        onClick = { viewModel.onTabSelected(tab) }
+                        onClick = { viewModel.onTabSelected(tab) },
+                        modifier = Modifier.focusRequester(tabFocusRequesters[index])
                     ) {
                         Text(
                             text = when(tab) {
