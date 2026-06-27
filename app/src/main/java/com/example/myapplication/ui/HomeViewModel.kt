@@ -103,23 +103,34 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun fetchGenrePosters() {
-        val genres = listOf(28, 12, 16, 35, 18, 27, 878, 10749)
-        genres.forEach { id ->
+        val movieGenres = listOf(28, 12, 16, 35, 18, 27, 878, 10749)
+        movieGenres.forEach { id ->
             viewModelScope.launch {
                 try {
-                    // Fetch for Movies
                     val movieRes = RetrofitClient.tmdbApi.getMoviesByGenre(id, page = 1)
                     movieRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
                         movieGenrePosters[id] = it
                     }
-                    
-                    // Fetch for TV
+                } catch (e: Exception) { e.printStackTrace() }
+            }
+        }
+
+        val tvGenres = listOf(10759, 16, 35, 18, 10765, 9648, 80)
+        tvGenres.forEach { id ->
+            viewModelScope.launch {
+                try {
                     val tvRes = RetrofitClient.tmdbApi.getTvByGenre(id, page = 1)
                     tvRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
                         tvGenrePosters[id] = it
                     }
+                } catch (e: Exception) { e.printStackTrace() }
+            }
+        }
 
-                    // Fetch for Anime: Filter by Animation (16) + current Genre
+        val animeGenres = listOf(28, 12, 35, 18, 27, 878, 10749)
+        animeGenres.forEach { id ->
+            viewModelScope.launch {
+                try {
                     val animeGenreRes = RetrofitClient.tmdbApi.getAnime(genreId = "16,$id", page = 1)
                     animeGenreRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
                         animeGenrePosters[id] = it

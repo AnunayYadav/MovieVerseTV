@@ -22,6 +22,7 @@ import com.example.myapplication.ui.HomeViewModel
 import com.example.myapplication.ui.TvTab
 import com.example.myapplication.ui.AppScreen
 import com.example.myapplication.ui.components.GenreRow
+import com.example.myapplication.ui.components.GenreItem
 import com.example.myapplication.ui.components.HeroBanner
 import com.example.myapplication.ui.components.MovieRow
 import com.example.myapplication.ui.screens.SearchScreen
@@ -156,6 +157,18 @@ fun MainScreen(viewModel: HomeViewModel) {
 @Composable
 fun HomeScreenContent(viewModel: HomeViewModel) {
     val scrollState = rememberScrollState()
+    val movieGenres = remember {
+        listOf(
+            GenreItem(28, "Action", ""),
+            GenreItem(12, "Adventure", ""),
+            GenreItem(16, "Animation", ""),
+            GenreItem(35, "Comedy", ""),
+            GenreItem(18, "Drama", ""),
+            GenreItem(27, "Horror", ""),
+            GenreItem(878, "Sci-Fi", ""),
+            GenreItem(10749, "Romance", "")
+        )
+    }
 
     if (viewModel.isLoading && viewModel.trendingMovies.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -175,7 +188,7 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
             MovieRow("Hindi Hits", viewModel.hindiHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
             MovieRow("South Indian Blockbusters", viewModel.southHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
             
-            GenreRow("Explore by Genre", viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+            GenreRow("Explore by Genre", movieGenres, viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
             Spacer(modifier = Modifier.height(48.dp))
         }
     }
@@ -184,6 +197,18 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
 @Composable
 fun TvShowsScreenContent(viewModel: HomeViewModel) {
     val scrollState = rememberScrollState()
+    val tvGenres = remember {
+        listOf(
+            GenreItem(10759, "Action & Adventure", ""),
+            GenreItem(16, "Animation", ""),
+            GenreItem(35, "Comedy", ""),
+            GenreItem(18, "Drama", ""),
+            GenreItem(10765, "Sci-Fi & Fantasy", ""),
+            GenreItem(9648, "Mystery", ""),
+            GenreItem(80, "Crime", "")
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
         key(viewModel.trendingTv.size) {
             HeroBanner(movies = viewModel.trendingTv, onPlayClick = { viewModel.navigateToDetails(it) })
@@ -199,7 +224,7 @@ fun TvShowsScreenContent(viewModel: HomeViewModel) {
         MovieRow("South Indian Series", viewModel.southTv, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreSouthTv() })
         MovieRow("Hollywood TV Picks", viewModel.hollywoodTv, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreHollywoodTv() })
         
-        GenreRow("TV Genres", viewModel.tvGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+        GenreRow("TV Genres", tvGenres, viewModel.tvGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
         Spacer(modifier = Modifier.height(48.dp))
     }
 }
@@ -207,6 +232,18 @@ fun TvShowsScreenContent(viewModel: HomeViewModel) {
 @Composable
 fun AnimeScreenContent(viewModel: HomeViewModel) {
     val scrollState = rememberScrollState()
+    val animeGenres = remember {
+        listOf(
+            GenreItem(28, "Action", ""),
+            GenreItem(12, "Adventure", ""),
+            GenreItem(35, "Comedy", ""),
+            GenreItem(18, "Drama", ""),
+            GenreItem(27, "Horror", ""),
+            GenreItem(878, "Sci-Fi", ""),
+            GenreItem(10749, "Romance", "")
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
         key(viewModel.latestAnime.size) {
             HeroBanner(movies = viewModel.latestAnime, onPlayClick = { viewModel.navigateToDetails(it) })
@@ -219,7 +256,7 @@ fun AnimeScreenContent(viewModel: HomeViewModel) {
         MovieRow("Crunchyroll Collection", viewModel.crunchyrollAnime, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreAnime() })
         MovieRow("Seasonal Hits", viewModel.seasonalAnime, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreAnime() })
         
-        GenreRow("Anime Moods", viewModel.animeGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+        GenreRow("Anime Moods", animeGenres, viewModel.animeGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
         Spacer(modifier = Modifier.height(48.dp))
     }
 }

@@ -21,21 +21,10 @@ data class GenreItem(val id: Int, val name: String, val posterUrl: String)
 @Composable
 fun GenreRow(
     title: String,
+    genres: List<GenreItem>,
     genrePosters: Map<Int, String> = emptyMap(),
     onGenreClick: (Int, String) -> Unit
 ) {
-    // Premium Genre list
-    val genres = listOf(
-        GenreItem(28, "Action", ""),
-        GenreItem(12, "Adventure", ""),
-        GenreItem(16, "Animation", ""),
-        GenreItem(35, "Comedy", ""),
-        GenreItem(18, "Drama", ""),
-        GenreItem(27, "Horror", ""),
-        GenreItem(878, "Sci-Fi", ""),
-        GenreItem(10749, "Romance", "")
-    )
-
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
             text = title,
