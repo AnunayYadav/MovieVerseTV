@@ -70,9 +70,22 @@ fun DetailsScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color(0xFF0F0F0F)),
+                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent, Color(0xFF0F0F0F)),
                         startY = 0f,
-                        endY = 1400f
+                        endY = 1200f
+                    )
+                )
+        )
+        
+        // Horizontal vignette for text readability
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent),
+                        startX = 0f,
+                        endX = 1000f
                     )
                 )
         )
