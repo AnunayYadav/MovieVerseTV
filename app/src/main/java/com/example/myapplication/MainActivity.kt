@@ -74,9 +74,15 @@ fun AppNavigation(viewModel: HomeViewModel = viewModel()) {
 @Composable
 fun GenreScreenContent(viewModel: HomeViewModel) {
     val scrollState = rememberScrollState()
+    val titleSuffix = when(viewModel.activeGenreTab) {
+        TvTab.Anime -> "Anime"
+        TvTab.TvShows -> "TV Shows"
+        else -> "Movies & Shows"
+    }
+    
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F0F))) {
         Text(
-            text = "${viewModel.activeGenreName} Movies & Shows",
+            text = "${viewModel.activeGenreName} $titleSuffix",
             style = MaterialTheme.typography.headlineLarge,
             color = Color.White,
             modifier = Modifier.padding(32.dp)

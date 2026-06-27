@@ -94,7 +94,7 @@ class HomeViewModel : ViewModel() {
             try {
                 val response = when (activeGenreTab) {
                     TvTab.TvShows -> RetrofitClient.tmdbApi.getTvByGenre(activeGenreId, page = genrePage++)
-                    TvTab.Anime -> RetrofitClient.tmdbApi.getAnime(page = genrePage++)
+                    TvTab.Anime -> RetrofitClient.tmdbApi.getAnime(genreId = "16,$activeGenreId", page = genrePage++)
                     else -> RetrofitClient.tmdbApi.getMoviesByGenre(activeGenreId, page = genrePage++)
                 }
                 genreMovies.addAll(filterReleased(response.results))
@@ -119,14 +119,10 @@ class HomeViewModel : ViewModel() {
                         tvGenrePosters[id] = it
                     }
 
-                    // Fetch for Anime
-                    if (id == 16) {
-                        val animeRes = RetrofitClient.tmdbApi.getAnime(page = 1)
-                        animeRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
-                            animeGenrePosters[id] = it
-                        }
-                    } else {
-                        animeGenrePosters[id] = movieGenrePosters[id] ?: ""
+                    // Fetch for Anime: Filter by Animation (16) + current Genre
+                    val animeGenreRes = RetrofitClient.tmdbApi.getAnime(genreId = "16,$id", page = 1)
+                    animeGenreRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
+                        animeGenrePosters[id] = it
                     }
                 } catch (e: Exception) { e.printStackTrace() }
             }
