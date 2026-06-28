@@ -328,13 +328,13 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
     }
     val providers = remember {
         listOf(
-            ProviderItem(8, "Netflix", "https://logo.clearbit.com/netflix.com"),
-            ProviderItem(119, "Amazon Prime Video", "https://logo.clearbit.com/primevideo.com"),
-            ProviderItem(350, "Apple TV", "https://logo.clearbit.com/apple.com"),
-            ProviderItem(337, "Disney+ Hotstar", "https://logo.clearbit.com/hotstar.com"),
-            ProviderItem(15, "Hulu", "https://logo.clearbit.com/hulu.com"),
-            ProviderItem(283, "Crunchyroll", "https://logo.clearbit.com/crunchyroll.com"),
-            ProviderItem(384, "HBO Max", "https://logo.clearbit.com/max.com")
+            ProviderItem(8, "Netflix", "https://image.tmdb.org/t/p/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"),
+            ProviderItem(119, "Amazon Prime Video", "https://image.tmdb.org/t/p/w500/kC6JTo59Gj6I4vJPyBAYGh0sKAE.jpg"),
+            ProviderItem(350, "Apple TV", "https://image.tmdb.org/t/p/w500/peURlLlr8jggOwK53fJ5wdQl05y.jpg"),
+            ProviderItem(337, "Disney+ Hotstar", "https://image.tmdb.org/t/p/w500/97yvRBw1GzX7fXprcF80er19ot.jpg"),
+            ProviderItem(15, "Hulu", "https://image.tmdb.org/t/p/w500/92xPNIrrXdgtfPu4Dd4tFryc9LW.jpg"),
+            ProviderItem(283, "Crunchyroll", "https://image.tmdb.org/t/p/w500/fzN5Jok5Ig1eJ7gyNGoMhnLSCfh.jpg"),
+            ProviderItem(384, "HBO Max", "https://image.tmdb.org/t/p/w500/fksCUZ9QDWZMUwL2LgMtLckROUN.jpg")
         )
     }
 

@@ -41,8 +41,14 @@ fun PlayerScreen(
     var anilistId by remember { mutableStateOf<Int?>(null) }
     var isWebViewLoading by remember { mutableStateOf(true) }
 
+    var isRendered by remember { mutableStateOf(false) }
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
     var lastLoadedUrl by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        delay(350) // Allow screen transition / ripple animation to finish smoothly
+        isRendered = true
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -81,139 +87,141 @@ fun PlayerScreen(
             } else false
         }
     ) {
-        AndroidView(
-            factory = { context ->
-                val wv = WebView(context).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+        if (isRendered) {
+            AndroidView(
+                factory = { context ->
+                    val wv = WebView(context).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        requestFocus()
+                        settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            mediaPlaybackRequiresUserGesture = false
+                            javaScriptCanOpenWindowsAutomatically = false
+                            setSupportMultipleWindows(false)
+                            userAgentString = "Mozilla/5.0 (Linux; Android 10; SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Mobile Safari/537.36"
+                        }
+                        webViewClient = object : WebViewClient() {
+                            override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                                isWebViewLoading = true
+                            }
+                            override fun onPageFinished(view: WebView?, url: String?) {
+                                isWebViewLoading = false
+                            }
+                            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                                val url = request?.url?.toString() ?: ""
+                                val adKeywords = listOf("doubleclick", "googlead", "adsystem", "pop", "click", "track", "banner", "pixel", "captcha", "robot")
+                                if (adKeywords.any { url.contains(it, ignoreCase = true) }) {
+                                    return WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream("".toByteArray()))
+                                }
+                                return super.shouldInterceptRequest(view, request)
+                            }
+                            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                                val url = request?.url?.toString() ?: ""
+                                val allowed = listOf("player", "vid", "embed", "weserv", "vidsrc", "peachify", "zxcstream", "cinesrc")
+                                return !allowed.any { url.contains(it) }
+                            }
+                        }
+                        
+                        addJavascriptInterface(object {
+                            @JavascriptInterface
+                            fun postMessage(message: String) {
+                                try {
+                                    val json = com.google.gson.JsonParser.parseString(message).asJsonObject
+                                    val type = json.get("type")?.asString ?: ""
+                                    
+                                    if (type == "cinesrc:timeupdate") {
+                                        val current = json.get("currentTime")?.asFloat ?: 0f
+                                        val dur = json.get("duration")?.asFloat ?: 0f
+                                        if (current > 0 && dur > 0) {
+                                            viewModel.saveProgress(
+                                                mediaId = movie.id,
+                                                title = movie.displayTitle,
+                                                posterPath = movie.posterPath,
+                                                backdropPath = movie.backdropPath,
+                                                mediaType = if (isTv) "tv" else "movie",
+                                                season = season,
+                                                episode = episode,
+                                                watched = current,
+                                                duration = dur
+                                            )
+                                        }
+                                        return
+                                    }
+
+                                    val data = json.getAsJsonObject("data")
+                                    if (data != null) {
+                                        val current = data.get("currentTime")?.asFloat ?: 0f
+                                        val dur = data.get("duration")?.asFloat ?: 0f
+                                        if (current > 0 && dur > 0) {
+                                            viewModel.saveProgress(
+                                                mediaId = movie.id,
+                                                title = movie.displayTitle,
+                                                posterPath = movie.posterPath,
+                                                backdropPath = movie.backdropPath,
+                                                mediaType = if (isTv) "tv" else "movie",
+                                                season = season,
+                                                episode = episode,
+                                                watched = current,
+                                                duration = dur
+                                            )
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }, "AndroidBridge")
+                    }
+                    webViewRef = wv
+                    wv
+                },
+                update = { webView ->
+                    val targetUrl = Providers.getUrl(
+                        index = viewModel.selectedProviderIndex,
+                        tmdbId = tmdbId,
+                        anilistId = anilistId,
+                        isTv = isTv,
+                        season = season,
+                        episode = episode,
+                        language = Providers.LANGUAGES[viewModel.selectedLanguageIndex],
+                        subtitle = "English"
                     )
-                    requestFocus()
-                    settings.apply {
-                        javaScriptEnabled = true
-                        domStorageEnabled = true
-                        mediaPlaybackRequiresUserGesture = false
-                        javaScriptCanOpenWindowsAutomatically = false
-                        setSupportMultipleWindows(false)
-                        userAgentString = "Mozilla/5.0 (Linux; Android 10; SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Mobile Safari/537.36"
+                    if (lastLoadedUrl != targetUrl) {
+                        lastLoadedUrl = targetUrl
+                        val htmlWrapper = """
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <style>
+                                    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: black; }
+                                    iframe { border: none; width: 100%; height: 100%; }
+                                </style>
+                            </head>
+                            <body>
+                                <iframe id="player" src="$targetUrl" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                                <script>
+                                    window.addEventListener('message', (event) => {
+                                        if (window.AndroidBridge && event.data) {
+                                            window.AndroidBridge.postMessage(JSON.stringify(event.data));
+                                        }
+                                    });
+                                </script>
+                            </body>
+                            </html>
+                        """.trimIndent()
+                        webView.loadDataWithBaseURL(targetUrl, htmlWrapper, "text/html", "UTF-8", null)
                     }
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
-                            isWebViewLoading = true
-                        }
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            isWebViewLoading = false
-                        }
-                        override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
-                            val url = request?.url?.toString() ?: ""
-                            val adKeywords = listOf("doubleclick", "googlead", "adsystem", "pop", "click", "track", "banner", "pixel", "captcha", "robot")
-                            if (adKeywords.any { url.contains(it, ignoreCase = true) }) {
-                                return WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream("".toByteArray()))
-                            }
-                            return super.shouldInterceptRequest(view, request)
-                        }
-                        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                            val url = request?.url?.toString() ?: ""
-                            val allowed = listOf("player", "vid", "embed", "weserv", "vidsrc", "peachify", "zxcstream", "cinesrc")
-                            return !allowed.any { url.contains(it) }
-                        }
-                    }
-                    
-                    addJavascriptInterface(object {
-                        @JavascriptInterface
-                        fun postMessage(message: String) {
-                            try {
-                                val json = com.google.gson.JsonParser.parseString(message).asJsonObject
-                                val type = json.get("type")?.asString ?: ""
-                                
-                                if (type == "cinesrc:timeupdate") {
-                                    val current = json.get("currentTime")?.asFloat ?: 0f
-                                    val dur = json.get("duration")?.asFloat ?: 0f
-                                    if (current > 0 && dur > 0) {
-                                        viewModel.saveProgress(
-                                            mediaId = movie.id,
-                                            title = movie.displayTitle,
-                                            posterPath = movie.posterPath,
-                                            backdropPath = movie.backdropPath,
-                                            mediaType = if (isTv) "tv" else "movie",
-                                            season = season,
-                                            episode = episode,
-                                            watched = current,
-                                            duration = dur
-                                        )
-                                    }
-                                    return
-                                }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
-                                val data = json.getAsJsonObject("data")
-                                if (data != null) {
-                                    val current = data.get("currentTime")?.asFloat ?: 0f
-                                    val dur = data.get("duration")?.asFloat ?: 0f
-                                    if (current > 0 && dur > 0) {
-                                        viewModel.saveProgress(
-                                            mediaId = movie.id,
-                                            title = movie.displayTitle,
-                                            posterPath = movie.posterPath,
-                                            backdropPath = movie.backdropPath,
-                                            mediaType = if (isTv) "tv" else "movie",
-                                            season = season,
-                                            episode = episode,
-                                            watched = current,
-                                            duration = dur
-                                        )
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }, "AndroidBridge")
-                }
-                webViewRef = wv
-                wv
-            },
-            update = { webView ->
-                val targetUrl = Providers.getUrl(
-                    index = viewModel.selectedProviderIndex,
-                    tmdbId = tmdbId,
-                    anilistId = anilistId,
-                    isTv = isTv,
-                    season = season,
-                    episode = episode,
-                    language = Providers.LANGUAGES[viewModel.selectedLanguageIndex],
-                    subtitle = "English"
-                )
-                if (lastLoadedUrl != targetUrl) {
-                    lastLoadedUrl = targetUrl
-                    val htmlWrapper = """
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <style>
-                                html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: black; }
-                                iframe { border: none; width: 100%; height: 100%; }
-                            </style>
-                        </head>
-                        <body>
-                            <iframe id="player" src="$targetUrl" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-                            <script>
-                                window.addEventListener('message', (event) => {
-                                    if (window.AndroidBridge && event.data) {
-                                        window.AndroidBridge.postMessage(JSON.stringify(event.data));
-                                    }
-                                });
-                            </script>
-                        </body>
-                        </html>
-                    """.trimIndent()
-                    webView.loadDataWithBaseURL(targetUrl, htmlWrapper, "text/html", "UTF-8", null)
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
-
-        if (isWebViewLoading) {
+        if (!isRendered || isWebViewLoading) {
             Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.align(Alignment.Center)) {
                     CircularProgressIndicator(color = Color.Red)
