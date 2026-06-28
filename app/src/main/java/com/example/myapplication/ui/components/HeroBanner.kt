@@ -17,6 +17,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.myapplication.model.Movie
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -54,7 +56,7 @@ fun HeroBanner(
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.4f), Color.Transparent, Color(0xFF0F0F0F)),
+                            colors = listOf(Color.Black.copy(alpha = 0.4f), Color.Transparent, Color(0xFF000000)),
                             startY = 0f
                         )
                     )
@@ -100,11 +102,18 @@ fun HeroBanner(
                             right = FocusRequester.Cancel
                         },
                     colors = ButtonDefaults.colors(
+                        containerColor = Color.White.copy(alpha = 0.2f),
+                        contentColor = Color.White,
                         focusedContainerColor = Color.White,
                         focusedContentColor = Color.Black
-                    )
+                    ),
+                    shape = ButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
                 ) {
-                    Text("Watch Now")
+                    Text(
+                        text = "▶  Watch Now",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
         }

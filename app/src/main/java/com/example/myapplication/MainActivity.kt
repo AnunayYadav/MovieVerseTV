@@ -27,6 +27,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.focus.onFocusChanged
 import com.example.myapplication.ui.components.GenreRow
 import com.example.myapplication.ui.components.GenreItem
 import com.example.myapplication.ui.components.HeroBanner
@@ -45,7 +48,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyApplicationTheme {
-                Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F0F))) {
+                Box(modifier = Modifier.fillMaxSize().background(Color(0xFF000000))) {
                     AppNavigation()
                 }
             }
@@ -127,7 +130,7 @@ fun GenreScreenContent(viewModel: HomeViewModel) {
         else -> "Movies & Shows"
     }
     
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F0F))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF000000))) {
         Text(
             text = "${viewModel.activeGenreName} $titleSuffix",
             style = MaterialTheme.typography.headlineLarge,
@@ -184,15 +187,20 @@ fun MainScreen(viewModel: HomeViewModel) {
                     }
             ) {
                 TvTab.entries.forEachIndexed { index, tab ->
+                    val isSelected = viewModel.selectedTab == tab
+                    var isTabFocused by remember { mutableStateOf(false) }
+
                     Tab(
-                        selected = viewModel.selectedTab == tab,
+                        selected = isSelected,
                         onFocus = { 
                             if (viewModel.selectedTab != tab) {
                                 viewModel.onTabSelected(tab) 
                             }
                         },
                         onClick = { viewModel.onTabSelected(tab) },
-                        modifier = Modifier.focusRequester(tabFocusRequesters[index])
+                        modifier = Modifier
+                            .focusRequester(tabFocusRequesters[index])
+                            .onFocusChanged { isTabFocused = it.isFocused }
                     ) {
                         Text(
                             text = when(tab) {
@@ -201,7 +209,22 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 TvTab.Anime -> "Anime"
                                 TvTab.Search -> "Search"
                             },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .background(
+                                    color = when {
+                                        isTabFocused -> Color.White.copy(alpha = 0.2f)
+                                        isSelected -> Color(0xFFE50914).copy(alpha = 0.15f)
+                                        else -> Color.Transparent
+                                    },
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .padding(horizontal = 20.dp, vertical = 10.dp),
+                            color = when {
+                                isTabFocused -> Color.White
+                                isSelected -> Color(0xFFE50914)
+                                else -> Color.White.copy(alpha = 0.6f)
+                            },
+                            fontWeight = if (isSelected || isTabFocused) FontWeight.Bold else FontWeight.Medium,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }

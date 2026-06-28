@@ -17,6 +17,7 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import coil.compose.AsyncImage
 import com.example.myapplication.model.Movie
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +45,8 @@ fun MovieCard(
             }
             // Increase Z-index when focused to prevent neighbors from clipping
             .zIndex(if (isFocused) 1f else 0f),
-        scale = CardDefaults.scale(focusedScale = 1.1f),
+        shape = CardDefaults.shape(RoundedCornerShape(8.dp)),
+        scale = CardDefaults.scale(focusedScale = 1.12f),
         border = CardDefaults.border(
             focusedBorder = Border(
                 border = BorderStroke(2.dp, Color.White),

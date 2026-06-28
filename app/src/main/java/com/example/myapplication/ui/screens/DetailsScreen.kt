@@ -66,7 +66,7 @@ fun DetailsScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F0F0F))) {
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF000000))) {
         AsyncImage(
             model = movie.fullBackdropPath,
             contentDescription = null,
