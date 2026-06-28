@@ -25,6 +25,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.focusGroup
 import com.example.myapplication.ui.components.GenreRow
 import com.example.myapplication.ui.components.GenreItem
@@ -209,11 +210,42 @@ fun MainScreen(viewModel: HomeViewModel) {
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            when (viewModel.selectedTab) {
-                TvTab.Home -> HomeScreenContent(viewModel)
-                TvTab.TvShows -> TvShowsScreenContent(viewModel)
-                TvTab.Anime -> AnimeScreenContent(viewModel)
-                TvTab.Search -> SearchScreen(viewModel)
+            val selected = viewModel.selectedTab
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = if (selected == TvTab.Home) 1f else 0f }
+                    .focusProperties { canFocus = selected == TvTab.Home }
+            ) {
+                HomeScreenContent(viewModel)
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = if (selected == TvTab.TvShows) 1f else 0f }
+                    .focusProperties { canFocus = selected == TvTab.TvShows }
+            ) {
+                TvShowsScreenContent(viewModel)
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = if (selected == TvTab.Anime) 1f else 0f }
+                    .focusProperties { canFocus = selected == TvTab.Anime }
+            ) {
+                AnimeScreenContent(viewModel)
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = if (selected == TvTab.Search) 1f else 0f }
+                    .focusProperties { canFocus = selected == TvTab.Search }
+            ) {
+                SearchScreen(viewModel)
             }
         }
     }
