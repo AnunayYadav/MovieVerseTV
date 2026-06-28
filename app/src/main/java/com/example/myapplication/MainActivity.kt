@@ -234,13 +234,13 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
     }
     val providers = remember {
         listOf(
-            ProviderItem(8, "Netflix", "https://image.tmdb.org/t/p/w500/p1e2J0214yBBG0142g4Urzn76R3.jpg"),
-            ProviderItem(119, "Amazon Prime Video", "https://image.tmdb.org/t/p/w500/dgPueyEd31OntPOkG4k645s732m.jpg"),
-            ProviderItem(350, "Apple TV", "https://image.tmdb.org/t/p/w500/2t73JgD1wQ525U57Z0241z47547.jpg"),
-            ProviderItem(337, "Disney Plus", "https://image.tmdb.org/t/p/w500/peURIl1G4Z476X2e2x7W4O5458Z.jpg"),
-            ProviderItem(15, "Hulu", "https://image.tmdb.org/t/p/w500/zI06869g202zU6Vz2yYy49zY59Y.jpg"),
-            ProviderItem(283, "Crunchyroll", "https://image.tmdb.org/t/p/w500/or68Spthn1K8Q49202zUe2c49zE.jpg"),
-            ProviderItem(384, "HBO Max", "https://image.tmdb.org/t/p/w500/gj47r4ptue5a44jZuCUIb52v4gy.jpg")
+            ProviderItem(8, "Netflix", "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/256px-Netflix_2015_logo.svg.png"),
+            ProviderItem(119, "Amazon Prime Video", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Amazon_Prime_Video_logo.svg/256px-Amazon_Prime_Video_logo.svg.png"),
+            ProviderItem(350, "Apple TV", "https://upload.wikimedia.org/wikipedia/commons/1/16/AppleTVLogo.png"),
+            ProviderItem(337, "Disney+ Hotstar", "https://upload.wikimedia.org/wikipedia/commons/f/fe/JioHotstar_logo.jpg"),
+            ProviderItem(15, "Hulu", "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Hulu_logo_%282018%29.svg/256px-Hulu_logo_%282018%29.svg.png"),
+            ProviderItem(283, "Crunchyroll", "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Crunchyroll_Logo.svg/256px-Crunchyroll_Logo.svg.png"),
+            ProviderItem(384, "HBO Max", "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/HBO_Max_%282025%29.svg/256px-HBO_Max_%282025%29.svg.png")
         )
     }
 

@@ -290,15 +290,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             isLoading = true
             try {
-                val jobs = listOf(
-                    launch { loadTrendingInternal() },
-                    launch { loadPopularInternal() },
-                    launch { loadNetflixInternal() },
-                    launch { loadRegionalInternal() },
-                    launch { loadTvInternal() },
-                    launch { loadAnimeInternal() }
-                )
-                jobs.joinAll()
+                loadTrendingInternal()
+                delay(100)
+                loadPopularInternal()
+                delay(100)
+                loadNetflixInternal()
+                delay(100)
+                loadRegionalInternal()
+                delay(100)
+                loadTvInternal()
+                delay(100)
+                loadAnimeInternal()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
