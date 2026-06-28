@@ -1,11 +1,13 @@
 package com.example.myapplication.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,6 +15,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import com.example.myapplication.data.RetrofitClient
@@ -20,12 +26,14 @@ import com.example.myapplication.data.Providers
 import com.example.myapplication.model.Episode
 import com.example.myapplication.model.Movie
 import com.example.myapplication.model.MovieDetailsResponse
+import com.example.myapplication.model.CollectionResponse
 import com.example.myapplication.ui.HomeViewModel
 import com.example.myapplication.ui.components.MovieRow
 import kotlinx.coroutines.launch
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import kotlin.math.round
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -38,6 +46,7 @@ fun DetailsScreen(
     onMovieClick: (Movie) -> Unit
 ) {
     var details by remember { mutableStateOf<MovieDetailsResponse?>(null) }
+    var collectionDetails by remember { mutableStateOf<CollectionResponse?>(null) }
     var episodes by remember { mutableStateOf<List<Episode>>(emptyList()) }
     val scope = rememberCoroutineScope()
     val isTv = movie.mediaType == "tv" || movie.firstAirDate != null
@@ -57,6 +66,12 @@ fun DetailsScreen(
                     RetrofitClient.tmdbApi.getMovieDetails(movie.id)
                 }
                 
+                details?.belongsToCollection?.let { collInfo ->
+                    try {
+                        collectionDetails = RetrofitClient.tmdbApi.getCollectionDetails(collInfo.id)
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
+
                 if (isTv && details?.seasons?.isNotEmpty() == true) {
                     val seasonNum = details?.seasons?.first()?.seasonNumber ?: 1
                     val seasonDetails = RetrofitClient.tmdbApi.getSeasonDetails(movie.id, seasonNum)
@@ -79,7 +94,7 @@ fun DetailsScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent, Color(0xFF0F0F0F)),
+                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent, Color(0xFF000000)),
                         startY = 0f,
                         endY = 1200f
                     )
@@ -113,24 +128,84 @@ fun DetailsScreen(
                 color = Color.White
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val roundedRating = (round(movie.voteAverage * 10) / 10).toString()
+            // Dynamic Metadata row optimized for low-end TVs
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                val roundedRating = remember(movie.voteAverage) { (round(movie.voteAverage * 10) / 10).toString() }
                 Text(
                     text = "$roundedRating Rating",
                     color = Color.Yellow,
-                    style = MaterialTheme.typography.labelLarge
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.width(16.dp))
+                
+                val releaseYear = remember(movie.releaseDate, movie.firstAirDate) {
+                    val date = movie.releaseDate ?: movie.firstAirDate ?: ""
+                    if (date.length >= 4) date.substring(0, 4) else date
+                }
+                if (releaseYear.isNotEmpty()) {
+                    Text(
+                        text = releaseYear,
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+
+                val runtimeText = remember(details) {
+                    details?.let { d ->
+                        if (isTv) {
+                            val seasonsCount = d.seasons?.size ?: 0
+                            if (seasonsCount > 0) "$seasonsCount ${if (seasonsCount == 1) "Season" else "Seasons"}" else null
+                        } else {
+                            d.runtime?.let { r ->
+                                val hours = r / 60
+                                val mins = r % 60
+                                if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
+                            }
+                        }
+                    }
+                }
+                if (runtimeText != null) {
+                    Text(
+                        text = runtimeText,
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+
+                Box(
+                    modifier = Modifier
+                        .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = if (!isTv && movie.voteAverage >= 7.0) "4K Ultra HD" else "HD",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // Genre tags
+            val genresList = remember(details) { details?.genres?.map { it.name } ?: emptyList() }
+            if (genresList.isNotEmpty()) {
                 Text(
-                    text = movie.releaseDate ?: movie.firstAirDate ?: "",
-                    color = Color.LightGray,
-                    style = MaterialTheme.typography.labelLarge
+                    text = genresList.joinToString("  ·  "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.LightGray.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // FIX: Using standardized provider list from Providers.kt
+            // Select Source Row
             Text("Select Source:", style = MaterialTheme.typography.titleMedium, color = Color.White)
             LazyRow(
                 modifier = Modifier
@@ -152,7 +227,7 @@ fun DetailsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text("Select Language:", style = MaterialTheme.typography.titleMedium, color = Color.White)
             LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
@@ -169,16 +244,67 @@ fun DetailsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            Row {
-                if (!isTv) {
-                    Button(onClick = onPlayClick) {
-                        Text("Watch Now")
+            // Watch & Action Buttons styled like Premium Netflix CTAs
+            Row(modifier = Modifier.padding(top = 16.dp)) {
+                val isTvShow = isTv
+                if (isTvShow) {
+                    if (episodes.isNotEmpty()) {
+                        Button(
+                            onClick = {
+                                viewModel.navigateToPlayer(movie, viewModel.selectedSeason, episodes.first().episodeNumber)
+                            },
+                            modifier = Modifier.padding(end = 16.dp),
+                            colors = ButtonDefaults.colors(
+                                containerColor = Color.White.copy(alpha = 0.2f),
+                                contentColor = Color.White,
+                                focusedContainerColor = Color.White,
+                                focusedContentColor = Color.Black
+                            ),
+                            shape = ButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
+                        ) {
+                            Text(
+                                text = "▶  Play S${viewModel.selectedSeason}:E${episodes.first().episodeNumber}",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
+                } else {
+                    Button(
+                        onClick = onPlayClick,
+                        modifier = Modifier.padding(end = 16.dp),
+                        colors = ButtonDefaults.colors(
+                            containerColor = Color.White.copy(alpha = 0.2f),
+                            contentColor = Color.White,
+                            focusedContainerColor = Color.White,
+                            focusedContentColor = Color.Black
+                        ),
+                        shape = ButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
+                    ) {
+                        Text(
+                            text = "▶  Watch Now",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
-                OutlinedButton(onClick = onBackClick) {
+
+                OutlinedButton(
+                    onClick = onBackClick,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                        focusedContainerColor = Color.White.copy(alpha = 0.2f),
+                        focusedContentColor = Color.White
+                    ),
+                    border = ButtonDefaults.outlinedButtonBorder(
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)),
+                        focusedBorder = BorderStroke(2.dp, Color.White)
+                    ),
+                    shape = ButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
+                ) {
                     Text("Go Back")
                 }
             }
@@ -196,7 +322,7 @@ fun DetailsScreen(
                 Spacer(modifier = Modifier.height(48.dp))
                 Text("Seasons", style = MaterialTheme.typography.headlineSmall, color = Color.White)
                 LazyRow(modifier = Modifier.padding(vertical = 16.dp)) {
-                    items(details!!.seasons!!) { season ->
+                    items(details!!.seasons!!, key = { it.id }) { season ->
                         Button(
                             onClick = { 
                                 viewModel.selectedSeason = season.seasonNumber
@@ -219,34 +345,79 @@ fun DetailsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("Episodes", style = MaterialTheme.typography.headlineSmall, color = Color.White)
-                LazyRow(modifier = Modifier.padding(vertical = 16.dp)) {
-                    items(episodes) { episode ->
+                LazyRow(
+                    contentPadding = PaddingValues(end = 32.dp),
+                    modifier = Modifier.padding(vertical = 16.dp)
+                ) {
+                    items(episodes, key = { it.id }) { episode ->
                         Card(
                             onClick = { 
                                 viewModel.navigateToPlayer(movie, viewModel.selectedSeason, episode.episodeNumber)
                             },
-                            modifier = Modifier.width(260.dp).padding(end = 20.dp)
+                            modifier = Modifier
+                                .width(280.dp)
+                                .padding(end = 20.dp),
+                            shape = CardDefaults.shape(RoundedCornerShape(8.dp)),
+                            scale = CardDefaults.scale(focusedScale = 1.08f),
+                            border = CardDefaults.border(
+                                focusedBorder = Border(
+                                    border = BorderStroke(2.dp, Color.White),
+                                    inset = 0.dp
+                                )
+                            )
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
-                                AsyncImage(
-                                    model = "https://image.tmdb.org/t/p/w300${episode.stillPath}",
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxWidth().height(140.dp),
-                                    contentScale = ContentScale.Crop
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(150.dp)
+                                        .clip(RoundedCornerShape(6.dp))
+                                ) {
+                                    AsyncImage(
+                                        model = if (episode.stillPath != null) "https://image.tmdb.org/t/p/w300${episode.stillPath}" else "https://p-nt-www-2.akamaized.net/media/76be7020-f09b-11ef-807d-53609805908b/02-Logo.jpg",
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
                                 Text(
-                                    text = "E${episode.episodeNumber}: ${episode.name}",
+                                    text = "Episode ${episode.episodeNumber}: ${episode.name ?: "TBA"}",
                                     maxLines = 1,
-                                    style = MaterialTheme.typography.labelLarge,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.White,
                                     modifier = Modifier.padding(top = 12.dp)
                                 )
+                                if (!episode.overview.isNullOrEmpty()) {
+                                    Text(
+                                        text = episode.overview,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.LightGray.copy(alpha = 0.8f),
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(64.dp))
+            // Franchise Collection section placed directly before Similar Movies
+            val collParts = remember(collectionDetails) { collectionDetails?.parts ?: emptyList() }
+            if (collParts.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(32.dp))
+                MovieRow(
+                    title = collectionDetails?.name ?: "Franchise Collection",
+                    movies = collParts,
+                    onMovieClick = onMovieClick,
+                    onMovieFocus = {}
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             details?.recommendations?.results?.let { recs ->
                 MovieRow(

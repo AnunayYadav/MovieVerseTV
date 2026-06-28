@@ -3,6 +3,7 @@ package com.example.myapplication.data
 import com.example.myapplication.model.MovieResponse
 import com.example.myapplication.model.MovieDetailsResponse
 import com.example.myapplication.model.SeasonDetailsResponse
+import com.example.myapplication.model.CollectionResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -130,4 +131,10 @@ interface TmdbApi {
         @Path("tv_id") tvId: Int,
         @Path("season_number") seasonNumber: Int
     ): SeasonDetailsResponse
+
+    @GET("collection/{collection_id}")
+    suspend fun getCollectionDetails(
+        @Path("collection_id") collectionId: Int,
+        @Query("language") language: String = "en-US"
+    ): CollectionResponse
 }

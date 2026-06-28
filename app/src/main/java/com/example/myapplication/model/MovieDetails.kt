@@ -16,7 +16,26 @@ data class MovieDetailsResponse(
     val credits: Credits?,
     val videos: VideoResponse?,
     val recommendations: MovieResponse?,
-    val seasons: List<Season>?
+    val seasons: List<Season>?,
+    val runtime: Int?,
+    @SerializedName("episode_run_time") val episodeRunTime: List<Int>?,
+    @SerializedName("belongs_to_collection") val belongsToCollection: CollectionInfo?
+)
+
+data class CollectionInfo(
+    val id: Int,
+    val name: String,
+    @SerializedName("poster_path") val posterPath: String?,
+    @SerializedName("backdrop_path") val backdropPath: String?
+)
+
+data class CollectionResponse(
+    val id: Int,
+    val name: String,
+    val overview: String?,
+    @SerializedName("poster_path") val posterPath: String?,
+    @SerializedName("backdrop_path") val backdropPath: String?,
+    val parts: List<Movie>
 )
 
 data class Season(
