@@ -98,7 +98,7 @@ fun PlayerScreen(
                         }
                         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                             val url = request?.url?.toString() ?: ""
-                            val allowed = listOf("player", "vid", "embed", "weserv", "vidsrc", "peachify")
+                            val allowed = listOf("player", "vid", "embed", "weserv", "vidsrc", "peachify", "zxcstream", "cinesrc")
                             return !allowed.any { url.contains(it) }
                         }
                     }
@@ -111,7 +111,9 @@ fun PlayerScreen(
                     anilistId = anilistId,
                     isTv = isTv,
                     season = season,
-                    episode = episode
+                    episode = episode,
+                    language = Providers.LANGUAGES[viewModel.selectedLanguageIndex],
+                    subtitle = "English"
                 )
                 // Only load if the URL is different to avoid infinite refreshing
                 if (webView.url != targetUrl) {
@@ -145,10 +147,11 @@ fun PlayerScreen(
                     .padding(24.dp)
             ) {
                 Column {
-                    Text("Select Source", style = MaterialTheme.typography.headlineSmall, color = Color.White)
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Text("Settings", style = MaterialTheme.typography.headlineSmall, color = Color.White)
+                    Spacer(modifier = Modifier.height(16.dp))
                     
                     Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                        Text("Select Source", style = MaterialTheme.typography.titleMedium, color = Color.Gray, modifier = Modifier.padding(vertical = 4.dp))
                         Providers.NAMES.forEachIndexed { index, name ->
                             Button(
                                 onClick = { 
@@ -162,6 +165,24 @@ fun PlayerScreen(
                                 )
                             ) {
                                 Text(name)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Select Language", style = MaterialTheme.typography.titleMedium, color = Color.Gray, modifier = Modifier.padding(vertical = 4.dp))
+                        Providers.LANGUAGES.forEachIndexed { index, lang ->
+                            Button(
+                                onClick = { 
+                                    viewModel.selectedLanguageIndex = index
+                                    showControls = false
+                                    isWebViewLoading = true
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                colors = ButtonDefaults.colors(
+                                    containerColor = if (viewModel.selectedLanguageIndex == index) Color(0xFFE50914) else Color(0xFF1A1A1A)
+                                )
+                            ) {
+                                Text(lang)
                             }
                         }
                     }

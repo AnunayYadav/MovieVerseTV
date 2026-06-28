@@ -1,0 +1,2334 @@
+#VidFast
+Movie Embed
+Endpoint
+
+Copy
+https://vidfast.pro/movie/{id}?autoPlay=true
+Required Parameters
+{id}Movie identifier from IMDB or TMDB
+Optional Parameters
+titleControls whether the media title is displayed
+posterDetermines if the poster image is shown
+autoPlayControls whether the media starts playing automatically
+startAtStarts the video at the specified time in seconds
+themeChanges the player's color (hex code format)
+serverChanges the default server for the player (set to server name)
+hideServerControls whether the server selector button is shown or hidden
+fullscreenButtonControls whether the fullscreen button is shown or hidden
+chromecastControls whether the Chromecast button is shown or hidden
+subSets the default subtitle (e.g. en, es, fr)
+Examples
+https://vidfast.pro/movie/tt6263850
+
+https://vidfast.pro/movie/533535?theme=16A085
+
+TV Show Embed
+Endpoint
+
+Copy
+https://vidfast.pro/tv/{id}/{season}/{episode}?autoPlay=true
+Required Parameters
+{id}TV show identifier from IMDB or TMDB
+{season}The season number
+{episode}The episode number
+Optional Parameters
+titleControls whether the media title is displayed
+posterDetermines if the poster image is shown
+autoPlayControls whether the media starts playing automatically
+startAtStarts the video at the specified time in seconds
+themeChanges the player's color (hex code format)
+nextButtonDisplays the "Next Episode" button when 90% of the current episode has been watched
+autoNextAutomatically plays the next episode when the current one ends (requires nextButton)
+serverChanges the default server for the player (set to server name)
+hideServerControls whether the server selector button is shown or hidden
+fullscreenButtonControls whether the fullscreen button is shown or hidden
+chromecastControls whether the Chromecast button is shown or hidden
+subSets the default subtitle (e.g. en, es, fr)
+Examples
+https://vidfast.pro/tv/tt4052886/1/5
+
+https://vidfast.pro/tv/63174/1/5?nextButton=true&autoNext=true
+
+Basic Implementation
+Copy and paste this code into your HTML where you want the player to appear:
+
+<iframe 
+  src="https://vidfast.pro/movie/533535" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+
+Copy code
+Responsive Implementation
+Wrap the iframe in this container to maintain the correct 16:9 aspect ratio:
+
+<!-- 16:9 Aspect Ratio Container -->
+<div style="position: relative; padding-bottom: 56.25%; height: 0;">
+  <iframe
+    src="https://vidfast.pro/movie/533535"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+    frameborder="0"
+    allowfullscreen
+    allow="encrypted-media"
+  ></iframe>
+</div>
+
+Copy code
+Responsive with Tailwind CSS
+<div className="relative w-full pt-[56.25%]">
+  <iframe
+    src="https://vidfast.pro/movie/533535"
+    className="absolute top-0 left-0 w-full h-full"
+    frameBorder="0"
+    allowFullScreen
+    allow="encrypted-media"
+  ></iframe>
+</div>
+
+Copy code
+Color Themes
+Customize the player's color by adding the theme parameter:
+
+Green Theme
+<iframe
+  src="https://vidfast.pro/movie/533535?theme=16A085"
+></iframe>
+#16A085
+
+Copy
+Blue Theme
+<iframe
+  src="https://vidfast.pro/movie/533535?theme=2980B9"
+></iframe>
+#2980B9
+
+Copy
+Purple Theme
+<iframe
+  src="https://vidfast.pro/movie/533535?theme=9B59B6"
+></iframe>
+#9B59B6
+
+Copy
+Advanced Features
+Complete Feature Example
+<iframe
+  src="https://vidfast.pro/tv/tt4052886/1/5?autoPlay=true&title=true&poster=true&theme=16A085&nextButton=true&autoNext=true"
+  width="100%"
+  height="100%"
+  frameborder="0"
+  allowfullscreen
+  allow="encrypted-media"
+></iframe>
+
+Copy complete example
+Feature Compatibility Matrix
+Feature	Movies	TV Shows
+Color Themes	✓	✓
+AutoPlay	✓	✓
+Start Time	✓	✓
+Poster Display	✓	✓
+Next Episode	✗	✓
+Auto Next	✗	✓
+Events & Progress Tracking
+The player can send watch progress events to the parent window. You can save this progress to localStorage or your own backend.
+
+Available Events
+playTriggered when video starts playing
+pauseTriggered when video is paused
+seekedTriggered when user seeks to a different timestamp
+endedTriggered when video playback ends
+timeupdateTriggered periodically during playback
+playerstatusTriggered when getStatus is called
+Event Data Structure
+{
+    type: "PLAYER_EVENT",
+    data: {
+        event: "play" | "pause" | "seeked" | "ended" | "timeupdate" | "playerstatus",
+        currentTime: number,
+        duration: number,
+        tmdbId: number,
+        mediaType: "movie" | "tv",
+        season?: number,
+        episode?: number,
+        playing: bool,
+        muted: bool,
+        volume: number
+    }
+}
+
+Event Listener Implementation
+Add this script where your iframe is located. For React/Next.js, place it in a useEffect hook.
+
+const vidfastOrigins = [
+    'https://vidfast.pro',
+    'https://vidfast.in',
+    'https://vidfast.io',
+    'https://vidfast.me',
+    'https://vidfast.net',
+    'https://vidfast.pm',
+    'https://vidfast.xyz'
+];
+
+window.addEventListener('message', ({ origin, data }) => {
+    if (!vidfastOrigins.includes(origin) || !data) {
+        return;
+    }
+
+    if (data.type === 'PLAYER_EVENT') {
+        const { event, currentTime, duration } = data.data;
+
+        console.log(`Player ${event} at ${currentTime}s of ${duration}s`);
+
+        // Add custom event handling logic here
+    }
+});
+
+Direct Media Data Event Listener
+This simpler event listener directly captures and stores the complete media data structure:
+
+const vidfastOrigins = [
+    'https://vidfast.pro',
+    'https://vidfast.in',
+    'https://vidfast.io',
+    'https://vidfast.me',
+    'https://vidfast.net',
+    'https://vidfast.pm',
+    'https://vidfast.xyz'
+];
+
+window.addEventListener('message', ({ origin, data }) => {
+    if (!vidfastOrigins.includes(origin) || !data) {
+        return;
+    }
+
+    if (data.type === 'MEDIA_DATA') {
+        localStorage.setItem('vidFastProgress', JSON.stringify(data.data));
+    }
+});
+
+Stored Data Structure Example
+The data is stored in localStorage and contains movie/show details, watch progress, and episode-specific progress for TV shows.
+
+{
+    "t63174": {
+        "id": 63174,
+        "type": "tv",
+        "title": "Lucifer",
+        "poster_path": "/ekZobS8isE6mA53RAiGDG93hBxL.jpg",
+        "backdrop_path": "/wbiPjTWpZMIB8ffBq7HvzAph4Ft.jpg",
+        "progress": {
+            "watched": 793.207692,
+            "duration": 2695.3689
+        },
+        "last_season_watched": 1,
+        "last_episode_watched": 1,
+        "show_progress": {
+            "s1e1": {
+                "season": 1,
+                "episode": 1,
+                "progress": {
+                    "watched": 793.207692,
+                    "duration": 2695.3689
+                },
+                "last_updated": 1742578021768
+            }
+        },
+        "last_updated": 1742578021768
+    },
+    "m533535": {
+        "id": 533535,
+        "type": "movie",
+        "title": "Deadpool & Wolverine",
+        "poster_path": "/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
+        "backdrop_path": "/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg",
+        "progress": {
+            "watched": 353.530349,
+            "duration": 7667.227
+        },
+        "last_updated": 1742577064433
+    }
+}
+
+PostMessage API Control
+Control VidFast players programmatically using the PostMessage API. Perfect for watch party features and custom player integrations.
+
+Available Commands
+play
+Resume video playback
+iframe.contentWindow.postMessage({
+    command: 'play'
+}, '*');
+pause
+Pause video playback
+iframe.contentWindow.postMessage({
+    command: 'pause'
+}, '*');
+seek
+Jump to specific time in video (seconds)
+iframe.contentWindow.postMessage({
+    command: 'seek',
+    time: 120  // Jump to 2 minutes
+}, '*');
+volume
+Set player volume (0.0 to 1.0)
+iframe.contentWindow.postMessage({
+    command: 'volume',
+    level: 0.5  // Set to 50% volume
+}, '*');
+mute
+Toggle mute state
+iframe.contentWindow.postMessage({
+    command: 'mute',
+    muted: true  // true to mute, false to unmute
+}, '*');
+getStatus
+Get current player status
+iframe.contentWindow.postMessage({
+    command: 'getStatus'
+}, '*');
+
+// Listen for response
+window.addEventListener('message', ({ data }) => {
+    if (data.type === 'PLAYER_EVENT' && data.data.event === 'playerstatus') {
+        console.log('Current time:', data.data.currentTime);
+        console.log('Duration:', data.data.duration);
+        console.log('Is playing:', data.data.playing);
+        console.log('Is muted:', data.data.muted);
+        console.log('Volume:', data.data.volume);
+    }
+});
+Watch Party Integration Example
+Perfect for synchronizing video playback across multiple users in a watch party scenario.
+
+// Watch Party Controller Example
+class WatchPartyController {
+    vidfastOrigins = [
+        'https://vidfast.pro',
+        'https://vidfast.in',
+        'https://vidfast.io',
+        'https://vidfast.me',
+        'https://vidfast.net',
+        'https://vidfast.pm',
+        'https://vidfast.xyz'
+    ]
+
+    constructor(iframeElement) {
+        this.iframe = iframeElement;
+        this.setupEventListeners();
+    }
+
+    // Sync play command to all participants
+    syncPlay(time) {
+        this.iframe.contentWindow.postMessage({
+            command: 'play',
+            time: time
+        }, '*');
+
+        // Broadcast to other participants
+        this.broadcastToParty({
+            action: 'play',
+            time: time
+        });
+    }
+
+    // Sync pause command to all participants
+    syncPause(time) {
+        this.iframe.contentWindow.postMessage({
+            command: 'pause',
+            time: time
+        }, '*');
+
+        this.broadcastToParty({
+            action: 'pause',
+            time: time
+        });
+    }
+
+    // Sync seek to specific time for all participants
+    syncSeek(time) {
+        this.iframe.contentWindow.postMessage({
+            command: 'seek',
+            time: time
+        }, '*');
+
+        this.broadcastToParty({
+            action: 'seek',
+            time: time
+        });
+    }
+
+    // Handle incoming party commands
+    handlePartyCommand(command) {
+        switch (command.action) {
+            case 'play':
+                this.iframe.contentWindow.postMessage({
+                    command: 'play'
+                }, '*');
+                break;
+            case 'pause':
+                this.iframe.contentWindow.postMessage({
+                    command: 'pause'
+                }, '*');
+                break;
+            case 'seek':
+                this.iframe.contentWindow.postMessage({
+                    command: 'seek',
+                    time: command.time
+                }, '*');
+                break;
+        }
+    }
+
+    broadcastToParty(command) {
+        // Your party synchronization logic here
+        // (WebSocket, Socket.IO, etc.)
+    }
+
+    onPlayerStatusUpdate(status) {
+        // Your status update logic here
+    }
+
+    setupEventListeners() {
+        // Listen for player events
+        window.addEventListener('message', (event) => {
+            if (!this.vidfastOrigins.includes(event.origin) || !event.data) {
+                return;
+            }
+
+            if (event.data.type === 'PLAYER_EVENT') {
+                const {
+                    event: playerEvent,
+                    currentTime
+                } = event.data.data;
+
+                switch (playerEvent) {
+                    case 'play':
+                        this.syncPlay(currentTime);
+                        break;
+                    case 'pause':
+                        this.syncPause(currentTime);
+                        break;
+                    case 'seeked':
+                        this.syncSeek(currentTime);
+                        break;
+                }
+            }
+
+            if (event.data.type === 'PLAYER_EVENT' && event.data.data.event === 'playerstatus') {
+                this.onPlayerStatusUpdate(event.data.data);
+            }
+        });
+    }
+}
+
+// Usage
+const iframe = document.querySelector('#vidfast-player');
+const watchParty = new WatchPartyController(iframe);
+⚠️ Important Notes
+• PostMessage commands work across all VidFast domains
+• Commands are processed asynchronously - status responses may have a small delay
+• For watch parties, implement proper synchronization logic to handle network latency
+• Always handle message events to receive player status updates
+• Seek commands accept time in seconds (integer values)
+
+
+#VidNest
+logo
+more
+question-ai-logo
+managemanage
+managemanage
+useruser
+fullfull
+closeclose
+Chat AI
+Hello! Is there any question I can help you with?
+Which iconic American landmark is located in South Dakota and features the faces of four U.S. presidents?
+How to save chat content in QuestionAI?
+Ask AI
+VIDNEST
+best streaming api you could ever dream of
+115K+
+Movies
+79K+
+Episodes
+5.3K+
+Animes
+
+Lets Go =>
+or
+test the player
+Movie
+Tv
+Anime
+AnimePahe
+Movie ID (TMDB)
+666243
+Load Movie
+
+Seamless Integration
+Effortlessly embed the player with just a simple link—no setup required.
+
+Vast Collection
+Access a massive library of movies and shows, aggregated from multiple sources.
+
+Fully Customizable
+Tailor the player to your preferences using intuitive query parameters.
+
+Always Fresh
+New content is added daily and updated automatically, so you never miss out.
+
+Top-Tier Quality
+Enjoy the latest available quality with lightning-fast performance.
+
+Ad-free Plays
+Boost your traffic with ad-free plays.
+
+API DOCUMENTATION
+Embed Movies
+TmdbId is required from The Movie Database API.
+
+https://vidnest.fun/movie/[TMDB_ID]
+
+Code Example
+
+<iframe src="https://vidnest.fun/movie/666243" frameBorder="0" scrolling="no" allowFullScreen></iframe>
+
+Embed Shows
+TmdbId is required from The Movie Database API. Season and episode number should not be empty.
+
+https://vidnest.fun/tv/[TMDB_ID]/[SEASON]/[EPISODE]
+
+Code Example
+
+<iframe src="https://vidnest.fun/tv/94997/1/1" frameBorder="0" scrolling="no" allowFullScreen></iframe>
+
+Embed Anime
+AnilistId is required. Episode number and sub/dub preference should be specified.
+
+https://vidnest.fun/anime/[ANILIST_ID]/[EPISODE]/[SUB_OR_DUB]
+
+Code Example
+
+<iframe src="https://vidnest.fun/anime/154587/1/hindi" frameBorder="0" scrolling="no" allowFullScreen></iframe>
+
+Embed AnimePahe
+AnilistId is required. Episode number and sub/dub preference should be specified.
+
+https://vidnest.fun/animepahe/[ANILIST_ID]/[EPISODE]/[SUB_OR_DUB]
+
+Code Example
+
+<iframe src="https://vidnest.fun/animepahe/16498/1/sub" frameBorder="0" scrolling="no" allowFullScreen></iframe>
+
+Query Parameters
+Customize playback using query params.
+
+startAt / progress
+Start playback at N seconds from the beginning.
+
+https://vidnest.fun/movie/666243?startAt=120
+
+https://vidnest.fun/tv/94997/1/1?progress=90
+
+server
+Force an initial server. Allowed values: lamda, primesrc, sigma, alfa, beta, gama, catflix, hexa, delta.
+
+https://vidnest.fun/movie/666243?server=gama
+
+https://vidnest.fun/tv/94997/1/1?server=alfa
+
+Combined Example
+
+<iframe src="https://vidnest.fun/movie/666243?server=gama&startAt=100" frameBorder="0" scrolling="no" allowFullScreen></iframe>
+
+Hide Controls (by query)
+Pass control names as query params with values like hide, false, 0, off, or empty to hide.
+
+Server Icon (servericon)
+Top Captions (topcaption)
+Top Settings (topsettings)
+Seek Backward (centerseekbackward)
+Play (centerplay)
+Seek Forward (centerseekforward)
+Time Slider (timeslider)
+Mute (mute)
+Volume (volume)
+Time Group (current/duration) (timegroup)
+Bottom Captions (bottomcaption)
+Bottom Settings (bottomsettings)
+Picture-in-Picture (pip)
+Cast (cast)
+Fullscreen (fullscreen)
+Prev Episode (TV only) (prevepisode)
+Next Episode (TV only) (nextepisode)
+Movie examples
+
+https://vidnest.fun/movie/666243?servericon=hide&topcaption=false&timeslider=0
+
+TV examples
+
+https://vidnest.fun/tv/94997/1/1?prevepisode=hide&nextepisode=hide&bottomsettings=off
+
+Progress Tracking Docs
+Simple, persistent video progress tracking system
+
+Overview
+Event Listener
+Data Structure
+Player Events
+Implementation
+Overview
+Progress Tracking is a lightweight event-driven system for monitoring playback progress in your custom video player. It stores watch data locally, providing persistent resume functionality across sessions.
+
+Smart resume and episode-specific tracking
+Real-time event monitoring (play, pause, seeked, etc.)
+Persistent local storage
+Simple API for analytics or resume points
+
+Add Event Listener
+Place this inside your React or Next.js useEffect where the player iframe exists.
+
+Copy
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://vidnest.fun') return;
+  
+  if (event.data?.type === 'MEDIA_DATA') {
+    const mediaData = event.data.data;
+    localStorage.setItem('vidNestProgress', JSON.stringify(mediaData));
+  }
+});
+
+Stored Data Structure
+Example of how progress data is stored in localStorage.
+
+Copy
+{
+  "76479": {
+    "id": 76479,
+    "type": "tv",
+    "title": "The Boys",
+    "poster_path": "/2zmTngn1tYC1AvfnrFLhxeD82hz.jpg",
+    "progress": {
+      "watched": 31.435372,
+      "duration": 3609.867
+    },
+    "last_season_watched": "1",
+    "last_episode_watched": "1",
+    "show_progress": {
+      "s1e1": {
+        "season": "1",
+        "episode": "1",
+        "progress": {
+          "watched": 31.435372,
+          "duration": 3609.867
+        }
+      }
+    }
+  }
+}
+Player Events
+Capture player events such as play, pause, seeked, and ended for analytics or logic.
+
+Copy
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://vidnest.fun') return;
+  
+  if (event.data?.type === 'PLAYER_EVENT') {
+    const { event: eventType, currentTime, duration } = event.data.data;
+    console.log(`Player ${eventType} at ${currentTime}s of ${duration}s`);
+  }
+});
+Implementation Example
+How to integrate the tracker in your React or Next.js application.
+
+Copy
+import { progressTracker } from './shared/progressTracking';
+
+useEffect(() => {
+  const handleEvent = (event) => {
+    switch (event.data.event) {
+      case 'play': console.log('Video started playing'); break;
+      case 'pause': console.log('Video paused'); break;
+      case 'ended': console.log('Video ended'); break;
+      case 'seeked': console.log('User seeked to:', event.data.currentTime); break;
+      case 'timeupdate': console.log('Progress update:', event.data.currentTime); break;
+    }
+  };
+  progressTracker.addEventListener(handleEvent);
+  return () => progressTracker.removeEventListener(handleEvent);
+}, []);
+
+const allProgress = progressTracker.getAllMediaData();
+const movieData = progressTracker.getMediaData('12345');
+const resumeTime = progressTracker.getResumeTime('12345', '1', '1');
+
+
+#VidCore
+Movie Embed
+TV Show Embed
+Endpoint
+GET
+https://vidcore.net/movie/{id}?autoPlay=true
+
+Required Parameters
+{id}
+Movie identifier from IMDB or TMDB
+Optional Parameters
+title
+Controls whether the media title is displayed
+poster
+Determines if the poster image is shown
+autoPlay
+Controls whether the media starts playing automatically
+startAt
+Starts the video at the specified time in seconds
+theme
+Changes the player's color (hex code format)
+server
+Changes the default server for the player (set to server name)
+hideServer
+Controls whether the server selector button is shown or hidden
+fullscreenButton
+Controls whether the fullscreen button is shown or hidden
+chromecast
+Controls whether the Chromecast button is shown or hidden
+sub
+Sets the default subtitle (e.g. en, es, fr)
+Examples
+Basic usage with IMDB ID
+Copy
+https://vidcore.net/movie/tt6263850
+With custom theme color
+Copy
+https://vidcore.net/movie/533535?theme=16A085
+With autoplay and subtitles
+Copy
+https://vidcore.net/movie/533535?autoPlay=true&sub=en
+Quick Implementation
+<iframe 
+  src="https://vidcore.net/movie/{id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+
+Embed VidCore players on any website using a standard HTML iframe. No JavaScript SDK required — just copy the code below and replace the IDs.
+
+Movie Player
+Copy
+<iframe 
+  src="https://vidcore.net/movie/{id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+TV Show Player
+Copy
+<iframe 
+  src="https://vidcore.net/tv/{id}/{season}/{episode}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+Responsive Embed (16:9)
+Copy
+<!-- 16:9 Aspect Ratio Container -->
+<div style="position: relative; padding-bottom: 56.25%; height: 0;">
+  <iframe
+    src="https://vidcore.net/movie/{id}"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+    frameborder="0"
+    allowfullscreen
+    allow="encrypted-media"
+  ></iframe>
+</div>
+React Component
+Copy
+const VidCorePlayer = ({ id, type = "movie", season, episode }) => (
+  <iframe
+    src={`https://vidcore.net/${type}/${id}${
+      type === "tv" ? `/${season}/${episode}` : ""
+    }?autoPlay=true`}
+    width="100%"
+    height="500px"
+    frameBorder="0"
+    allowFullScreen
+  />
+);
+Quick Implementation
+<iframe 
+  src="https://vidcore.net/movie/{id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+
+Customize the VidCore player appearance and behavior by appending URL parameters to the embed URL. All parameters are optional.
+
+theme
+string
+default: default
+Changes the player accent color. Accepts a hex color code without the # prefix (e.g. theme=16A085)
+
+title
+boolean
+default: true
+Shows or hides the media title overlay in the player
+
+poster
+boolean
+default: true
+Shows or hides the poster/thumbnail image before playback begins
+
+autoPlay
+boolean
+default: false
+Starts playback automatically when the player loads. May be blocked by browser policies
+
+startAt
+number
+default: 0
+Starts the video at a specific time. Value is in seconds (e.g. startAt=120 starts at 2 minutes)
+
+sub
+string
+default: none
+Sets the default subtitle track using language codes (e.g. en, es, fr, de, pt)
+
+server
+string
+default: auto
+Sets the default streaming server. Use the exact server name as it appears in the server selector
+
+hideServer
+boolean
+default: false
+Hides the server selector button from the player controls
+
+fullscreenButton
+boolean
+default: true
+Shows or hides the fullscreen toggle button in the player
+
+chromecast
+boolean
+default: true
+Shows or hides the Chromecast/AirPlay button in the player controls
+
+nextButton
+boolean
+default: false
+TV only — Shows a 'Next Episode' button when 90% of the current episode has been watched
+
+autoNext
+boolean
+default: false
+TV only — Automatically advances to the next episode when the current one finishes. Requires nextButton=true
+
+Example with multiple parameters
+GET https://vidcore.net/movie/533535?theme=16A085&autoPlay=true&sub=en&hideServer=true
+Quick Implementation
+<iframe 
+  src="https://vidcore.net/movie/{id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+
+Events & Progress Tracking
+The player can send watch progress events to the parent window. You can save this progress to localStorage or your own backend.
+
+Available Events
+play
+Triggered when video starts playing
+pause
+Triggered when video is paused
+seeked
+Triggered when user seeks to a different timestamp
+ended
+Triggered when video playback ends
+timeupdate
+Triggered periodically during playback
+playerstatus
+Triggered when getStatus is called
+Event Data Structure
+Copy
+{
+  type: "timeupdate",  // event name
+  data: {
+    currentTime: 142.5,  // current playback time in seconds
+    duration: 7200,      // total duration in seconds
+    percent: 0.02        // progress as decimal (0 to 1)
+  }
+}
+Event Listener Implementation
+Copy
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://vidcore.net") return;
+
+  const { type, data } = event.data;
+
+  if (type === "timeupdate") {
+    // Save progress every 10 seconds
+    if (Math.floor(data.currentTime) % 10 === 0) {
+      localStorage.setItem(`progress_${mediaId}`, JSON.stringify({
+        time: data.currentTime,
+        duration: data.duration,
+        percent: data.percent
+      }));
+    }
+  }
+
+  if (type === "ended") {
+    console.log("Video finished!");
+  }
+});
+Direct Media Data Event Listener
+Copy
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://vidcore.net") return;
+
+  // The player also sends direct media data
+  if (event.data?.mediaId) {
+    const { mediaId, mediaType, season, episode } = event.data;
+    console.log("Now playing:", mediaType, mediaId);
+    // season and episode are set for TV shows
+  }
+});
+Stored Data Structure Example
+Copy
+// localStorage key: "progress_{mediaId}"
+{
+  "time": 3612,       // seconds watched
+  "duration": 7200,   // total length in seconds
+  "percent": 0.5      // 50% watched
+}
+Quick Implementation
+<iframe 
+  src="https://vidcore.net/movie/{id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+
+PostMessage API Control
+Control VidCore players programmatically using the PostMessage API. Perfect for watch party features and custom player integrations.
+
+Available Commands
+play
+Resume video playback
+iframe.contentWindow.postMessage({
+    command: 'play'
+}, '*');
+pause
+Pause video playback
+iframe.contentWindow.postMessage({
+    command: 'pause'
+}, '*');
+seek
+Jump to specific time in video (seconds)
+iframe.contentWindow.postMessage({
+    command: 'seek',
+    time: 120  // Jump to 2 minutes
+}, '*');
+volume
+Set player volume (0.0 to 1.0)
+iframe.contentWindow.postMessage({
+    command: 'volume',
+    level: 0.5  // Set to 50% volume
+}, '*');
+mute
+Toggle mute state
+iframe.contentWindow.postMessage({
+    command: 'mute',
+    muted: true  // true to mute, false to unmute
+}, '*');
+getStatus
+Get current player status
+iframe.contentWindow.postMessage({
+    command: 'getStatus'
+}, '*');
+
+// Listen for response
+window.addEventListener('message', ({ data }) => {
+    if (data.type === 'PLAYER_EVENT' && data.data.event === 'playerstatus') {
+        console.log('Current time:', data.data.currentTime);
+        console.log('Duration:', data.data.duration);
+        console.log('Is playing:', data.data.playing);
+        console.log('Is muted:', data.data.muted);
+        console.log('Volume:', data.data.volume);
+    }
+});
+Watch Party Integration Example
+Perfect for synchronizing video playback across multiple users in a watch party scenario.
+
+Sync Example
+Copy
+// Watch Party Controller Example
+class WatchPartyController {
+    vidcoreOrigins = [
+        'https://vidcore.net'
+    ]
+
+    constructor(iframeElement) {
+        this.iframe = iframeElement;
+        this.setupEventListeners();
+    }
+
+    // Sync play command to all participants
+    syncPlay(time) {
+        this.iframe.contentWindow.postMessage({
+            command: 'play',
+            time: time
+        }, '*');
+
+        // Broadcast to other participants
+        this.broadcastToParty({
+            action: 'play',
+            time: time
+        });
+    }
+
+    // Sync pause command to all participants
+    syncPause(time) {
+        this.iframe.contentWindow.postMessage({
+            command: 'pause',
+            time: time
+        }, '*');
+
+        this.broadcastToParty({
+            action: 'pause',
+            time: time
+        });
+    }
+
+    // Sync seek to specific time for all participants
+    syncSeek(time) {
+        this.iframe.contentWindow.postMessage({
+            command: 'seek',
+            time: time
+        }, '*');
+
+        this.broadcastToParty({
+            action: 'seek',
+            time: time
+        });
+    }
+
+    // Handle incoming party commands
+    handlePartyCommand(command) {
+        switch (command.action) {
+            case 'play':
+                this.iframe.contentWindow.postMessage({
+                    command: 'play'
+                }, '*');
+                break;
+            case 'pause':
+                this.iframe.contentWindow.postMessage({
+                    command: 'pause'
+                }, '*');
+                break;
+            case 'seek':
+                this.iframe.contentWindow.postMessage({
+                    command: 'seek',
+                    time: command.time
+                }, '*');
+                break;
+        }
+    }
+
+    broadcastToParty(command) {
+        // Your party synchronization logic here
+        // (WebSocket, Socket.IO, etc.)
+    }
+
+    onPlayerStatusUpdate(status) {
+        // Your status update logic here
+    }
+
+    setupEventListeners() {
+        // Listen for player events
+        window.addEventListener('message', (event) => {
+            if (!this.vidcoreOrigins.includes(event.origin) || !event.data) {
+                return;
+            }
+
+            if (event.data.type === 'PLAYER_EVENT') {
+                const {
+                    event: playerEvent,
+                    currentTime
+                } = event.data.data;
+
+                switch (playerEvent) {
+                    case 'play':
+                        this.syncPlay(currentTime);
+                        break;
+                    case 'pause':
+                        this.syncPause(currentTime);
+                        break;
+                    case 'seeked':
+                        this.syncSeek(currentTime);
+                        break;
+                }
+            }
+
+            if (event.data.type === 'PLAYER_EVENT' && event.data.data.event === 'playerstatus') {
+                this.onPlayerStatusUpdate(event.data.data);
+            }
+        });
+    }
+}
+
+// Usage
+const iframe = document.querySelector('#vidcore-player');
+const watchParty = new WatchPartyController(iframe);
+Quick Implementation
+<iframe 
+  src="https://vidcore.net/movie/{id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  allowfullscreen 
+  allow="encrypted-media"
+></iframe>
+
+##Peachify
+logo
+more
+question-ai-logo
+managemanage
+managemanage
+useruser
+fullfull
+closeclose
+Chat AI
+Hello! Is there any question I can help you with?
+Which iconic American landmark is located in South Dakota and features the faces of four U.S. presidents?
+What are the main industries driving the U.S. economy?
+Ask AI
+Peachify API
+Empower your streaming site with our embed player. Built for seamless integration, smart fallbacks, and total progress control.
+
+Embed Movies
+TMDB or IMDb ID is accepted. TMDB IDs are recommended, but IMDb IDs also work as long as you keep the tt prefix.
+
+Endpoint URL
+https://peachify.pro/embed/movie/{tmdb_id}
+Embed Shows
+TMDB or IMDb ID is accepted. TMDB IDs are recommended, but IMDb IDs also work as long as you keep the tt prefix. For shows, Season and Episode are still required.
+
+Endpoint URL
+https://peachify.pro/embed/tv/{tmdb_id}/{season}/{episode}
+Interactive Builder
+Basic Settings
+Movie
+TV Series
+TMDB or IMDb ID
+786892
+Dub Preference
+e.g. English
+Subtitle Preference
+e.g. English
+Colors
+
+Default
+
+Netflix
+
+Discord
+
+Spotify
+
+Twitch
+
+Orange
+Custom Hex (Accent)
+B54666
+
+Features & Controls
+Hide Cast Button
+?cast=hide
+
+Hide PIP Button
+?pip=hide
+
+Hide Server Menu
+?servers=hide
+
+Auto Play
+Enabled by default
+
+https://peachify.pro/embed/movie/786892
+Open
+
+01.
+Integration Code
+Snippet
+<!-- Movie -->
+<iframe 
+  src="https://peachify.pro/embed/movie/{media_id}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  style="border-radius: 12px;"
+  allow="autoplay; fullscreen; picture-in-picture" 
+  allowfullscreen>
+</iframe>
+
+<!-- TV Series -->
+<iframe 
+  src="https://peachify.pro/embed/tv/{media_id}/{season}/{episode}" 
+  width="100%" 
+  height="100%" 
+  frameborder="0" 
+  style="border-radius: 12px;"
+  allow="autoplay; fullscreen; picture-in-picture" 
+  allowfullscreen>
+</iframe>
+Documentation Reference
+02.
+Query Parameters
+server Force Provider
+Forces the player to attempt loading a specific server first. If it fails, it will fall back to the normal order.
+
+iron
+(Fast)
+spider
+(Fast)
+multi
+dark
+Example
+?server=iron
+dub Audio Track
+Request a specific audio language. The player uses smart fallback if it doesn't exist.
+
+Example
+?dub=English
+sub Subtitle Track
+Request a specific subtitle by label, fallbacks to user's preferred subtitle (localstorage).
+
+Example
+?sub=English
+startAt Auto Resume
+Starts playback at a specific second. Aliases: progress, t.
+
+Example
+?startAt=120
+autoNext TV Episode Flow
+TV only. Disabled by default. If credits timing exists, the player uses that to show or trigger next episode. Otherwise it falls back to ?autoNext=30, or your custom value like ?autoNext=45 (in seconds).
+
+Example
+?autoNext=30
+showNextBtn Next Episode Prompt
+TV only. Pass ?showNextBtn=false if you want auto-next available but do not want the manual Next Episode prompt button to appear.
+
+Example
+?showNextBtn=false
+autoPlay Playback Start
+Default: true. You only need this parameter when you want to disable autoplay.
+
+Example
+?autoPlay=false
+[control]=hide White-label UI
+Pass hide, false, or 0 to any of these keys to remove them from the player UI:
+
+• pip
+• cast
+• fullscreen
+• volume
+• servers
+• captions
+• quality
+Example
+?cast=hide&pip=0&servers=false
+03.
+Events & Progress Tracking
+Events & Progress Tracking
+The player sends two outbound postMessage payload types: PLAYER_EVENT for playback updates and MEDIA_DATA for the Peachify progress object you can store directly.
+
+Available Events
+play
+Triggered when video starts playing
+pause
+Triggered when video is paused
+seeked
+Triggered when user seeks to a different timestamp
+ended
+Triggered when video playback ends
+timeupdate
+Triggered periodically during playback
+MEDIA_DATA is sent alongside playback updates so you can persist the latest peachifyProgress object.
+Event Data Structure
+JSON Payload
+{
+  "type": "PLAYER_EVENT",
+  "data": {
+    "event": "play",
+    "currentTime": 31.435372,
+    "duration": 3609.867,
+    "tmdbId": 76479,
+    "mediaType": "tv",
+    "season": 1,
+    "episode": 1
+  }
+}
+Event Listener Implementation
+Add this listener next to your iframe. It handles both PLAYER_EVENT updates and the MEDIA_DATA payload used for continue watching. Parent-to-player remote control commands are currently disabled.
+
+JavaScript
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://peachify.pro') return;
+  
+  if (event.data?.type === 'MEDIA_DATA') {
+    const peachifyProgress = event.data.data;
+    localStorage.setItem('peachifyProgress', JSON.stringify(peachifyProgress));
+  }
+
+  if (event.data?.type === 'PLAYER_EVENT') {
+    const { event: playerEvent, currentTime, duration } = event.data.data;
+    console.log(`Player ${playerEvent} at ${currentTime}s of ${duration}s`);
+  }
+});
+Progress Data Structure
+This is the MEDIA_DATA.data object shape returned by the player and typically saved under peachifyProgress.
+
+JSON Example
+{
+  "76479": {
+    "id": 76479,
+    "type": "tv",
+    "title": "The Boys",
+    "poster_path": "/2zmTngn1tYC1AvfnrFLhxeD82hz.jpg",
+    "progress": {
+      "watched": 31.435372,
+      "duration": 3609.867
+    },
+    "last_season_watched": "1",
+    "last_episode_watched": "1",
+    "show_progress": {
+      "s1e1": {
+        "season": "1",
+        "episode": "1",
+        "progress": {
+          "watched": 31.435372,
+          "duration": 3609.867
+        }
+      }
+    }
+  },
+  "786892": {
+    "id": 786892,
+    "type": "movie",
+    "title": "Furiosa: A Mad Max Saga",
+    "poster_path": "/iADOJ8Zymht2JPMoy3R7xceZprc.jpg",
+    "backdrop_path": "/wNAhuOZ3Zf84jCIlrcI6JhgmY5q.jpg",
+    "progress": {
+      "watched": 8726.904767,
+      "duration": 8891.763
+    },
+    "last_updated": 1725723972695
+  }
+}
+Integrate with AI
+Building a site? Copy this markdown and paste it into ChatGPT or Cursor. It is framed from the developer's perspective and contains our entire API schema so the AI can write your integration component for you instantly.
+
+Markdown
+I am building a streaming website and I want to embed the Peachify video player via an iframe. Please write the integration code for me based on the following API reference. I want a robust component/script that passes the correct parameters to the URL and sets up a message listener to sync watch progress.
+
+### 1. Base URL
+The player is hosted at: `https://peachify.pro`
+
+### 2. Endpoints
+- **Movies:** `https://peachify.pro/embed/movie/{media_id}`
+- **TV Shows:** `https://peachify.pro/embed/tv/{media_id}/{season}/{episode}`
+
+Use a TMDB numeric ID or an IMDb ID that starts with `tt`. TMDB IDs are recommended, but IMDb IDs are also supported as long as you keep the `tt` prefix so the player can distinguish and resolve them automatically.
+
+### 3. Query Parameters
+I can append these to the iframe URL to customize it:
+- `dub` / `audio` (string): Target audio language (e.g. `English`)
+- `sub` / `subtitle` (string): Target subtitle language or label (e.g. `English`, `eng`, `Arabic`). If it isn't available, the player only falls back to the user's saved subtitle preference.
+- `quality` / `q` (string or number): Request a preferred quality such as `1080` or `1080p`
+- `server` (string): Force a specific provider first (e.g. `iron`, `spider`, `wolf`)
+- `api` (string / URL): Override the provider API base URL if I am using my own Peachify-compatible backend
+- `startAt` / `progress` / `t` (number): Start playback from this timestamp in seconds
+- `autoNext` (boolean-like or number, TV only): enable episode auto-next. When credits data exists, the player uses that credits start automatically. Otherwise it falls back to the default 30-second threshold or your custom value like `?autoNext=45`
+- `showNextBtn` / `showAutoNextButton` / `nextEpisodeButton` (boolean-like, TV only): show or hide the manual Next Episode prompt button. Example: `?showNextBtn=false`
+- `accent` (hex): Custom UI accent color (e.g. `B54666` without `#`)
+- `autoPlay` (boolean-like, default: `true`): omit it for normal autoplay behavior. Pass `?autoPlay=false` to disable autoplay
+- **Hide UI controls:** pass `hide`, `false`, `0`, or `off` to any of these keys:
+  `pip`, `cast`, `fullscreen`, `volume`, `servers`, `captions`, `quality`, `play`, `rewind`, `forward`, `timegroup`, `timeslider`, `settings`
+
+### 4. Events & Progress Tracking
+The iframe still posts two outbound message types back to the parent window:
+- `PLAYER_EVENT` for playback changes like play, pause, seeked, ended, and timeupdate
+- `MEDIA_DATA` for the full Peachify progress object you can store directly
+
+`PLAYER_EVENT` has this top-level shape:
+```json
+{
+  "type": "PLAYER_EVENT",
+  "data": {
+    "event": "play",
+    "currentTime": 31.435372,
+    "duration": 3609.867,
+    "tmdbId": 76479,
+    "mediaType": "tv",
+    "season": 1,
+    "episode": 1
+  }
+}
+```
+
+Example listener:
+```javascript
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://peachify.pro') return;
+  
+  if (event.data?.type === 'MEDIA_DATA') {
+    const peachifyProgress = event.data.data;
+    localStorage.setItem('peachifyProgress', JSON.stringify(peachifyProgress));
+  }
+
+  if (event.data?.type === 'PLAYER_EVENT') {
+    const { event: playerEvent, currentTime, duration } = event.data.data;
+    console.log(`Player ${playerEvent} at ${currentTime}s of ${duration}s`);
+  }
+});
+```
+
+### 5. Continue Watching Storage
+The `MEDIA_DATA.data` payload can be stored as a JSON object like this:
+```json
+{
+  "76479": {
+    "id": 76479,
+    "type": "tv",
+    "title": "The Boys",
+    "poster_path": "/2zmTngn1tYC1AvfnrFLhxeD82hz.jpg",
+    "progress": {
+      "watched": 31.435372,
+      "duration": 3609.867
+    },
+    "last_season_watched": "1",
+    "last_episode_watched": "1",
+    "show_progress": {
+      "s1e1": {
+        "season": "1",
+        "episode": "1",
+        "progress": {
+          "watched": 31.435372,
+          "duration": 3609.867
+        }
+      }
+    }
+  },
+  "786892": {
+    "id": 786892,
+    "type": "movie",
+    "title": "Furiosa: A Mad Max Saga",
+    "poster_path": "/iADOJ8Zymht2JPMoy3R7xceZprc.jpg",
+    "backdrop_path": "/wNAhuOZ3Zf84jCIlrcI6JhgmY5q.jpg",
+    "progress": {
+      "watched": 8726.904767,
+      "duration": 8891.763
+    },
+    "last_updated": 1725723972695
+  }
+}
+```
+
+### 6. Source & Subtitle Behavior
+When no specific dub is requested, the player prefers:
+1. sources containing `original`
+2. sources containing `english`
+3. the first available source
+
+If `quality` / `q` is supplied, the player tries to match that quality when choosing the initial source.
+
+If `sub` / `subtitle` is supplied, the player tries to match that subtitle label or language code first. If that match is unavailable, it only falls back to the stored subtitle choice. Otherwise subtitles stay off until the viewer picks one.
+
+When switching to a hard-subbed source, the player temporarily turns off the active external subtitle track. If the user goes back to a regular dub, the preferred subtitle can be restored automatically.
+
+For TV shows, the built-in settings menu now includes an Episodes browser so viewers can jump across seasons and episodes from inside the player.
+
+#Vidify
+logo
+more
+question-ai-logo
+managemanage
+managemanage
+useruser
+fullfull
+closeclose
+Chat AI
+Hello! Is there any question I can help you with?
+What are the main industries driving the U.S. economy?
+What is the national bird of the United States?
+Ask AI
+Vidify
+Player
+Docs
+FAQs
+WELCOME TO
+Vidify
+Discover unlimited entertainment with our premium streaming platform. Enjoy movies, TV shows, and anime with our powerful, fully customizable player that adapts to your preferences.
+
+Start Watching
+Explore Library
+Explore Content
+Advanced Player
+Our powerful custom player allows you to tailor your viewing experience exactly how you want it.
+
+Movie
+Series
+Anime
+1064213
+Player Preview
+Live Preview
+
+Loading Player...
+
+Generated Player Link
+Share this embed code or direct URL
+
+Embed Code
+Copy
+<iframe src="https://player.vidify.top/embed/movie/1064213?autoplay=false&poster=true&chromecast=true&servericon=true&setting=true&pip=true&logourl=https%3A%2F%2Fi.ibb.co%2F67wTJd9R%2Fpngimg-com-netflix-PNG11.png&font=Roboto&fontcolor=6f63ff&fontsize=20&opacity=0.5&primarycolor=3b82f6&secondarycolor=1f2937&iconcolor=ffffff" frameborder="0" allowfullscreen></iframe>
+Direct URL
+Copy
+https://player.vidify.top/embed/movie/1064213?autoplay=false&poster=true&chromecast=true&servericon=true&setting=true&pip=true&logourl=https%3A%2F%2Fi.ibb.co%2F67wTJd9R%2Fpngimg-com-netflix-PNG11.png&font=Roboto&fontcolor=6f63ff&fontsize=20&opacity=0.5&primarycolor=3b82f6&secondarycolor=1f2937&iconcolor=ffffff
+How to Use
+Use the embed code in your website or share the direct URL. Your custom player settings will be preserved for the best viewing experience.
+
+Copy embed code
+Share direct URL
+Customize settings
+Player Settings
+Primary
+
+#3b82f6
+Secondary
+
+#1f2937
+Icon
+
+#ffffff
+Autoplay
+Auto-play next content
+
+
+Auto Next Episode
+Skip to next episode automatically
+
+
+Show Next Button
+Display next episode button
+
+
+Show Poster
+Show movie poster in player
+
+
+Download
+Enable download option
+
+
+Chromecast
+Enable Chromecast support
+
+
+Episode List
+Show episode selection list
+
+
+Server
+Display server selection
+
+
+Setting
+Show player settings button
+
+
+PIP
+Enable Picture-in-Picture mode
+
+
+Logo URL
+https://i.ibb.co/67wTJd9R/pngimg-com-netflix-PNG11.png
+Enter the URL of your custom logo image
+
+Advanced Player Controls
+Customize your video player experience by hiding or showing specific controls and features. Toggle options to see the corresponding URL parameters.
+
+Hide Controls
+Control player interface visibility
+
+Hide Primary Color
+Hide primary color control
+
+
+Hide Secondary Color
+Hide secondary color control
+
+
+Hide Icon Color
+Hide icon color control
+
+
+Hide Progress Control
+Hide progress control
+
+
+Hide Icon Set
+Hide icon set control
+
+
+Hide Auto Next
+Hide auto next control
+
+
+Hide Autoplay
+Hide autoplay control
+
+
+Hide Controls
+Control player interface visibility
+
+Hide Next Button
+Hide next button control
+
+
+Hide Poster
+Hide poster control
+
+
+Hide Chromecast
+Hide chromecast control
+
+
+Hide Episode List
+Hide episode list control
+
+
+Hide Server Icon
+Hide server icon control
+
+
+Hide PIP
+Hide picture-in-picture control
+
+
+Font Settings
+Customize subtitle appearance
+
+Coming Soon
+Advanced font customization options for subtitles and player text will be available in a future update.
+
+API Documentation
+Comprehensive video streaming API documentation for embedding movies, TV shows, and anime content with customizable players.
+
+Embed Movies
+ID is required from The Movie Database API.
+
+Endpoint
+https://player.vidify.top/embed/movie/{tmdbId}
+Usage
+Replace {tmdbId} with your TMDB movie ID
+Copy URL
+Embed Shows
+Embed TV series with season and episode parameters.
+
+Endpoint
+https://player.vidify.top/embed/tv/{tmdbId}/{season}/{episode}
+Usage
+Replace {tmdbId}, {season}, {episode} with your values
+Copy URL
+Embed Anime
+Embed anime content using AniList ID with optional dub parameter.
+
+Endpoint
+https://player.vidify.top/embed/anime/{AnilistId}/{number}?dub=trueOrFalse
+Usage
+Replace {AnilistId}, {number} with your values
+Copy URL
+Player Options
+Configure your video player with these customizable options. Each option can be added to your embed URL as query parameters.
+
+primaryColor
+Main player color theme
+Main player color theme
+
+primarycolor=6f63ff
+Copy
+secondaryColor
+Secondary accent color
+Secondary accent color
+
+secondarycolor=9f94ff
+Copy
+iconColor
+Color of player icons
+Color of player icons
+
+iconcolor=6f63ff
+Copy
+autoplay
+Auto-play on load
+Auto-play on load
+
+autoplay=true
+Copy
+poster
+Show movie poster
+Show movie poster
+
+poster=true
+Copy
+chromecast
+Enable Chromecast support
+Enable Chromecast support
+
+chromecast=true
+Copy
+servericon
+Show server selection button
+Show server selection button
+
+servericon=true
+Copy
+setting
+Show player settings button
+Show player settings button
+
+setting=true
+Copy
+pip
+Enable Picture-in-Picture mode
+Enable Picture-in-Picture mode
+
+pip=true
+Copy
+font
+Subtitle font family
+Subtitle font family
+
+font=Roboto
+Copy
+fontcolor
+Subtitle text color
+Subtitle text color
+
+fontcolor=6f63ff
+Copy
+fontsize
+Subtitle font size in pixels
+Subtitle font size in pixels
+
+fontsize=20
+Copy
+opacity
+Subtitle opacity (0-1)
+Subtitle opacity (0-1)
+
+opacity=0.8
+Copy
+logourl
+Custom logo URL
+Custom logo URL
+
+logourl=https://example.com/logo.png
+Copy
+server
+Specifies the server name or server number to use for playback.
+Specifies the server name or server number to use for playback.
+
+server=hindi
+Copy
+Complete Example
+Combine multiple options in your embed URL
+
+https://player.vidify.top/embed/movie/12345?
+primarycolor=6f63ff&
+secondarycolor=9f94ff&
+fontcolor=6f63ff&
+autoplay=true&
+poster=true
+Copy URL
+Watch Progress
+Track your users' watch progress across movies and TV shows. This feature enables Continue Watching functionality on your website.
+
+Overview
+Event Listener
+Data Structure
+Player Events
+Implementation
+Overview
+Progress Tracking is a lightweight event-driven system for monitoring playback progress in your custom video player. It stores watch data locally, providing persistent resume functionality across sessions.
+
+Smart resume and episode-specific tracking
+Real-time event monitoring (play, pause, seeked, etc.)
+Persistent local storage
+Simple API for analytics or resume points
+Frequently Asked Questions
+Search FAQs...
+All
+6
+Important
+1
+Technical
+3
+Content
+2
+
+1
+Are your links protected from DMCA?
+
+2
+Are subtitles available for all movies and TV shows?
+
+3
+What should I do if I come across incorrect movies or TV shows?
+
+4
+Is it possible to change the video quality?
+
+5
+Do you offer movies and TV shows in languages other than English?
+
+6
+Can I use this API for anime?
+© 2025 Vidify. All rights reserved.
+Discord
+Terms
+Privacy
+Cookies
+Add Event Listener
+Place this inside your React or Next.js useEffect where the player iframe exists.
+
+Script
+Copy
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://player.vidify.top') return;
+
+  if (event.data?.type === 'WATCH_PROGRESS') {
+    const { mediaId, currentTime, duration } = event.data.data;
+    localStorage.setItem(`progress_${mediaId}`, JSON.stringify({
+      currentTime, duration, lastWatched: Date.now()
+    }));
+  }
+});
+Stored Data Structure
+Progress data is stored in localStorage with this structure.
+
+Example Data Structure
+Copy
+{
+  "movie_12345": {
+    "currentTime": 1247.5,
+    "duration": 7200,
+    "lastWatched": 1703123456789,
+    "mediaType": "movie",
+    "title": "The Dark Knight",
+    "poster": "https://example.com/poster.jpg",
+    "watched_percentage": 17.3
+  },
+  "show_67890": {
+    "season": 1,
+    "episode": 5,
+    "currentTime": 2341.2,
+    "duration": 2640,
+    "lastWatched": 1703123456789,
+    "mediaType": "tv",
+    "title": "Breaking Bad",
+    "episodeTitle": "Gray Matter",
+    "poster": "https://example.com/poster.jpg",
+    "watched_percentage": 88.7
+  }
+}
+Available Events
+play
+Triggered when video starts playing
+pause
+Triggered when video is paused
+seeked
+Triggered when user seeks to a different timestamp
+ended
+Triggered when video playback ends
+timeupdate
+Triggered periodically during playback
+Implementation Example
+Complete Implementation
+Copy
+// Complete progress tracking implementation
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://player.vidify.top') return;
+
+  if (event.data?.type === 'WATCH_PROGRESS') {
+    const { mediaId, eventType, currentTime, duration } = event.data.data;
+
+    // Handle the event
+    console.log('Watch Progress:', { mediaId, eventType, currentTime, duration });
+
+    // Store progress data
+    const progressData = {
+      currentTime,
+      duration,
+      lastWatched: Date.now(),
+      eventType
+    };
+
+    localStorage.setItem(\`progress_${mediaId}\`, JSON.stringify(progressData));
+
+    // Optional: Handle specific events
+    if (eventType === 'play') {
+      console.log('Video started playing');
+    } else if (eventType === 'pause') {
+      console.log('Video paused');
+    }
+  }
+});
+
+
+#ZXCStream
+logo
+more
+question-ai-logo
+managemanage
+managemanage
+useruser
+fullfull
+closeclose
+Chat AI
+Hello! Is there any question I can help you with?
+Who was the first person to step foot on the moon?
+What can you do?
+Ask AI
+Download endpoint is now available, usage: https://zxcstream.xyz/download/{media_type}/{tmdbId}
+
+Sample Link
+zxcprime.icu
+zxcstream.xyz
+zxcstream.icu
+
+PLAYER
+
+Custom Player
+Built-in Player
+MEDIA TYPE
+
+Movie Player
+Series Player
+TMDB ID
+
+299534
+https://zxcstream.xyz/player/movie/299534
+
+
+Query Parameters
+
+NEW UPDATE - dubLang
+Sets the audio dub language when the player loads.
+
+Usage
+/player/movie/1184918?dubLang=hi
+/player/tv/66732/1/2?dubLang=tl
+Available Values
+en — Original
+fr — French
+hi — Hindi
+id — Indonesian
+pt — Portuguese
+ru — Russian
+es — Spanish
+tl — Tagalog
+ta — Tamil
+te — Telugu
+esla — Spanish (LA)
+ptbr — Portuguese (BR)
+Notes
+If the requested dubLang is not available, the player falls back to the original audio.
+Not all languages are available for every title.
+Check the dubs array in the source response to see which languages are available for a specific title.
+server
+= e.g 1
+Set your favorite server as default.
+
+domainAd
+= e.g zxcstream.icu
+Displays a domain intro splash before the player loads.
+
+color
+= e.g fafafa
+Changes the accent color of the player UI. Pass a hex code without the #.
+
+autoplay
+= e.g true
+Automatically plays the movie but muted.
+
+back
+= e.g true
+Shows a back button inside the player for navigation.
+
+Join our community!
+Telegram
+Discord
+
+#CineSRC
+logo
+more
+question-ai-logo
+managemanage
+managemanage
+useruser
+fullfull
+closeclose
+Chat AI
+Hello! Is there any question I can help you with?
+What is the national bird of the United States?
+What is the longest war in American history?
+Ask AI
+CineSrc Logo
+CineSrc
+Demo
+Documentation
+Documentation
+Learn how to integrate CineSrc video streams into your application.
+
+Quickstart
+Get started by embedding our player directly into your website with a simple iframe.
+
+Movie Embed
+html
+
+<iframe
+  src="https://cinesrc.st/embed/movie/1084242"
+  width="100%"
+  height="100%"
+  frameborder="0"
+  allowfullscreen
+  allow="autoplay; fullscreen; picture-in-picture"
+></iframe>
+TV Show Embed
+html
+
+<iframe
+  src="https://cinesrc.st/embed/tv/1396?s=1&e=1"
+  width="100%"
+  height="100%"
+  frameborder="0"
+  allowfullscreen
+  allow="autoplay; fullscreen; picture-in-picture"
+></iframe>
+Embed URL Structure
+All content is identified by TMDB IDs. Use the following URL patterns:
+
+Movies
+
+https://cinesrc.st/embed/movie/{tmdb_id}
+TV Shows
+
+https://cinesrc.st/embed/tv/{tmdb_id}?s={season}&e={episode}
+Parameters
+Name
+Type
+Description
+type
+string
+RequiredContent type: "movie" or "tv"
+id
+number
+RequiredTMDB ID of the movie or TV show
+s
+number
+Season number (TV shows only). Alias: season
+e
+number
+Episode number (TV shows only). Alias: episode
+Customization
+Customize the player appearance and behavior using URL parameters.
+
+Example with customization
+html
+
+<iframe
+  src="https://cinesrc.st/embed/movie/1084242?seek=15&muted=true&color=%23e50914"
+  width="100%"
+  height="100%"
+  frameborder="0"
+  allowfullscreen
+></iframe>
+Customization Parameters
+Name
+Type
+Description
+seek
+number
+Seek button duration in seconds, 1-99 (default: 10)
+autoplay
+boolean
+Auto-start playback (default: true)
+muted
+boolean
+Start muted (default: false)
+color
+string
+Accent color as hex (use %23 for #)
+controls
+boolean
+Show player controls (default: true)
+back
+string
+URL for the back button, or "close" to send postMessage to parent
+autonext
+boolean
+Auto-play next episode when current ends (default: true)
+autoskip
+boolean
+Auto-skip intro/recap when detected (default: false)
+prioritize
+boolean
+Prioritize the last used server on load (default: false)
+lastserver
+string
+Server ID to use as the preferred server
+t
+number
+Start time in seconds (alias: time)
+continueprompt
+boolean
+Show a Continue / Restart prompt when t is set (default: true). Pass false to seek directly without asking.
+quality
+string
+Preferred video quality (e.g. "1080", "720", "480")
+febbox
+string
+Febbox authentication token for premium source access
+Note: When using hex colors, replace # with %23. Example: #e50914 → %23e50914
+
+Back Button: Add ?back=https://yoursite.com to show a back button in the top-left corner that redirects to your site.
+
+Auto-Next Episode: For TV shows, the player will automatically advance to the next episode after a countdown when the current episode ends or the outro is detected. Add ?autonext=false to disable this feature. A chevron button in the top-right corner allows manual navigation to the next episode.
+
+Skip Intro: When intro data is available for a TV episode, a "Skip Intro" button appears automatically during the intro segment. Add ?autoskip=true to automatically skip intros without user interaction.
+
+Player Events
+Listen for events via postMessage to sync your application with the player.
+
+Event Listener Setup
+javascript
+
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://cinesrc.st') return;
+  
+  const { type, ...data } = event.data;
+  
+  switch (type) {
+    case 'cinesrc:ready':
+      console.log('Player ready');
+      break;
+    case 'cinesrc:timeupdate':
+      console.log(data.currentTime, '/', data.duration);
+      break;
+  }
+});
+Available Events
+Event
+Data
+Description
+cinesrc:ready
+—
+Player loaded and ready
+cinesrc:play
+—
+Playback started
+cinesrc:pause
+—
+Playback paused
+cinesrc:timeupdate
+{ currentTime, duration }
+Periodic time update
+cinesrc:seeking
+{ currentTime, duration }
+User started seeking
+cinesrc:seeked
+{ currentTime, duration }
+Seek operation completed
+cinesrc:ended
+—
+Playback ended
+cinesrc:volumechange
+{ volume, muted }
+Volume changed
+cinesrc:ratechange
+{ playbackRate }
+Playback speed changed
+cinesrc:loadedmetadata
+{ duration }
+Media metadata loaded (duration available)
+cinesrc:nextepisode
+{ season, episode, internalNavigation, source }
+Episode changed inside the player. Sources: button, up-next, auto, or episode-selector. Do not replace the iframe when internalNavigation is true.
+cinesrc:skipintro
+{ time }
+Intro skipped, seeked to specified time
+cinesrc:sourceused
+{ sourceId }
+Stream source/server changed
+cinesrc:close
+—
+Back button clicked when back=close
+cinesrc:error
+{ error }
+Error occurred
+cinesrc:response
+{ command, result }
+Response to a getter command (e.g. getCurrentTime)
+Player Methods
+Control the player programmatically by sending commands via postMessage. Setter methods execute immediately. Getter methods return their values asynchronously via the cinesrc:response event.
+
+Sending Commands
+javascript
+
+const iframe = document.querySelector('iframe');
+
+function sendCommand(command, args = []) {
+  iframe.contentWindow.postMessage({
+    type: 'cinesrc:command',
+    command,
+    args
+  }, 'https://cinesrc.st');
+}
+
+// Examples
+sendCommand('play');
+sendCommand('pause');
+sendCommand('seek', [120]);
+sendCommand('setVolume', [0.5]);
+
+// Getter commands return values via cinesrc:response event
+sendCommand('getCurrentTime');
+sendCommand('getDuration');
+Receiving Getter Responses
+javascript
+
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://cinesrc.st') return;
+  if (event.data.type !== 'cinesrc:response') return;
+
+  switch (event.data.command) {
+    case 'getCurrentTime':
+      console.log('Current time:', event.data.result);
+      break;
+    case 'getDuration':
+      console.log('Duration:', event.data.result);
+      break;
+    case 'getPaused':
+      console.log('Is paused:', event.data.result);
+      break;
+  }
+});
+Available Methods
+Method
+Parameters
+Returns
+Description
+play()
+—
+Promise
+Start playback
+pause()
+—
+void
+Pause playback
+seek()
+time: number
+void
+Seek to time in seconds
+setVolume()
+vol: number
+void
+Set volume (0-1)
+setMuted()
+muted: bool
+void
+Mute/unmute
+setPlaybackRate()
+rate: number
+void
+Set speed (0.25-2)
+getCurrentTime()
+—
+number
+Get current playback time in seconds
+getDuration()
+—
+number
+Get total media duration in seconds
+getVolume()
+—
+number
+Get current volume (0-1)
+getMuted()
+—
+boolean
+Get current muted state
+getPaused()
+—
+boolean
+Get current paused state
+getPlaybackRate()
+—
+number
+Get current playback speed
+Best Practices
+Always verify message origin
+Check event.origin before processing postMessage events in production.
+
+Use responsive containers
+Set iframe to 100% width/height and control size with a parent container using aspect-ratio.
+
+Handle errors gracefully
+Listen for cinesrc:error events and provide fallback UI when streams fail.
+
+Allow required permissions
+Include allow="autoplay; fullscreen; picture-in-picture" on your iframe.
+
+Optimize for performance
+Lazy-load the iframe when it enters the viewport to improve initial page load times.
+
+Respect user preferences
+Consider user settings for autoplay and volume to enhance the viewing experience.
+
+Test across devices
+Ensure your integration works well on various devices and screen sizes for maximum compatibility.
+
+Stay updated
+Regularly check the documentation for new features and updates to the player API.
+
+On this page
+
+Quickstart
+Embed URLs
+Customization
+Events
+Methods
+Best Practices
+

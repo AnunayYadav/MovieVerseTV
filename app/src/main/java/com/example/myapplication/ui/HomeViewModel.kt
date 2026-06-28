@@ -21,7 +21,8 @@ class HomeViewModel : ViewModel() {
     
     var selectedSeason by mutableIntStateOf(1)
     var selectedEpisode by mutableIntStateOf(1)
-    var selectedProviderIndex by mutableIntStateOf(0)
+    var selectedProviderIndex by mutableIntStateOf(1)
+    var selectedLanguageIndex by mutableIntStateOf(0)
 
     var isLoading by mutableStateOf(false)
 

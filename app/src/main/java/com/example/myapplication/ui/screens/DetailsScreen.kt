@@ -137,6 +137,23 @@ fun DetailsScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Select Language:", style = MaterialTheme.typography.titleMedium, color = Color.White)
+            LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
+                items(Providers.LANGUAGES.size) { index ->
+                    Button(
+                        onClick = { viewModel.selectedLanguageIndex = index },
+                        modifier = Modifier.padding(end = 12.dp),
+                        colors = ButtonDefaults.colors(
+                            containerColor = if (viewModel.selectedLanguageIndex == index) Color(0xFFE50914) else Color(0xFF1A1A1A)
+                        )
+                    ) {
+                        Text(Providers.LANGUAGES[index])
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row {
