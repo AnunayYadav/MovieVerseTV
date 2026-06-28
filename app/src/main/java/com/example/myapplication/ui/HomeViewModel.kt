@@ -1,27 +1,120 @@
 package com.example.myapplication.ui
 
+import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.RetrofitClient
 import com.example.myapplication.model.Movie
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.joinAll
 import java.text.SimpleDateFormat
 import java.util.*
+
+data class WatchProgress(
+    val mediaId: Int,
+    val title: String,
+    val posterPath: String?,
+    val backdropPath: String?,
+    val mediaType: String,
+    val season: Int = 1,
+    val episode: Int = 1,
+    val watched: Float,
+    val duration: Float,
+    val lastUpdated: Long = System.currentTimeMillis()
+)
 
 enum class TvTab { Home, TvShows, Anime, Search }
 enum class AppScreen { Main, Details, Player, Genre }
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
+    private val context = application.applicationContext
+    
     var currentScreen by mutableStateOf(AppScreen.Main)
     var selectedTab by mutableStateOf(TvTab.Home)
+    
+    val continueWatching = mutableStateListOf<Movie>()
+
+    fun loadContinueWatching() {
+        val prefs = context.getSharedPreferences("continue_watching", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val listType = object : TypeToken<List<WatchProgress>>() {}.type
+        val json = prefs.getString("progress_list", null)
+        if (json != null) {
+            try {
+                val list = gson.fromJson<List<WatchProgress>>(json, listType) ?: emptyList()
+                continueWatching.clear()
+                continueWatching.addAll(list.map { progress ->
+                    Movie(
+                        id = progress.mediaId,
+                        title = if (progress.mediaType == "movie") progress.title else null,
+                        name = if (progress.mediaType == "tv") progress.title else null,
+                        overview = if (progress.mediaType == "tv") "Resume: S${progress.season} E${progress.episode}" else "Resume Watching",
+                        posterPath = progress.posterPath,
+                        backdropPath = progress.backdropPath,
+                        voteAverage = 0.0,
+                        releaseDate = null,
+                        firstAirDate = if (progress.mediaType == "tv") "tv" else null,
+                        mediaType = progress.mediaType
+                    )
+                })
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun saveProgress(mediaId: Int, title: String, posterPath: String?, backdropPath: String?, mediaType: String, season: Int, episode: Int, watched: Float, duration: Float) {
+        val progress = WatchProgress(
+            mediaId = mediaId,
+            title = title,
+            posterPath = posterPath,
+            backdropPath = backdropPath,
+            mediaType = mediaType,
+            season = season,
+            episode = episode,
+            watched = watched,
+            duration = duration
+        )
+
+        val prefs = context.getSharedPreferences("continue_watching", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val listType = object : TypeToken<List<WatchProgress>>() {}.type
+        val json = prefs.getString("progress_list", null)
+        val list = if (json != null) {
+            try {
+                gson.fromJson<MutableList<WatchProgress>>(json, listType) ?: mutableListOf()
+            } catch (e: Exception) {
+                mutableListOf()
+            }
+        } else {
+            mutableListOf()
+        }
+
+        // If watched is near duration (e.g. > 90%), remove it from continue watching
+        if (duration > 0 && watched / duration > 0.9f) {
+            list.removeAll { it.mediaId == mediaId }
+        } else {
+            list.removeAll { it.mediaId == mediaId }
+            list.add(0, progress)
+            if (list.size > 20) {
+                list.removeAt(list.size - 1)
+            }
+        }
+
+        prefs.edit().putString("progress_list", gson.toJson(list)).apply()
+        loadContinueWatching()
+    }
     var selectedMovie by mutableStateOf<Movie?>(null)
     
     var selectedSeason by mutableIntStateOf(1)
     var selectedEpisode by mutableIntStateOf(1)
-    var selectedProviderIndex by mutableIntStateOf(1)
+    var selectedProviderIndex by mutableIntStateOf(4)
     var selectedLanguageIndex by mutableIntStateOf(0)
 
     var isLoading by mutableStateOf(false)
@@ -72,6 +165,7 @@ class HomeViewModel : ViewModel() {
     private val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
     init {
+        loadContinueWatching()
         fetchAllData()
         fetchGenrePosters()
     }
@@ -173,22 +267,15 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
-                // Batch 1
-                loadTrendingInternal()
-                loadPopularInternal()
-                delay(200)
-                // Batch 2
-                loadNetflixInternal()
-                delay(200)
-                // Batch 3
-                loadRegionalInternal()
-                delay(200)
-                // Batch 4
-                loadTvInternal()
-                delay(200)
-                // Batch 5
-                loadAnimeInternal()
-                
+                val jobs = listOf(
+                    launch { loadTrendingInternal() },
+                    launch { loadPopularInternal() },
+                    launch { loadNetflixInternal() },
+                    launch { loadRegionalInternal() },
+                    launch { loadTvInternal() },
+                    launch { loadAnimeInternal() }
+                )
+                jobs.joinAll()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

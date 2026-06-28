@@ -20,14 +20,17 @@ import coil.compose.AsyncImage
 import com.example.myapplication.ui.HomeViewModel
 import com.example.myapplication.ui.TvTab
 import com.example.myapplication.ui.AppScreen
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.foundation.focusGroup
 import com.example.myapplication.ui.components.GenreRow
 import com.example.myapplication.ui.components.GenreItem
 import com.example.myapplication.ui.components.HeroBanner
 import com.example.myapplication.ui.components.MovieRow
+import com.example.myapplication.ui.components.ShimmerRow
 import com.example.myapplication.ui.screens.SearchScreen
 import com.example.myapplication.ui.screens.DetailsScreen
 import com.example.myapplication.ui.screens.PlayerScreen
@@ -47,30 +50,59 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AppNavigation(viewModel: HomeViewModel = viewModel()) {
     BackHandler(enabled = viewModel.currentScreen != AppScreen.Main) {
         viewModel.navigateBack()
     }
 
-    when (viewModel.currentScreen) {
-        AppScreen.Main -> MainScreen(viewModel)
-        AppScreen.Genre -> GenreScreenContent(viewModel)
-        AppScreen.Details -> viewModel.selectedMovie?.let { movie ->
-            DetailsScreen(
-                movie = movie,
-                viewModel = viewModel,
-                onPlayClick = { viewModel.navigateToPlayer(movie) },
-                onBackClick = { viewModel.navigateBack() },
-                onMovieClick = { viewModel.navigateToDetails(it) }
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        val isMain = viewModel.currentScreen == AppScreen.Main
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .focusRestorer()
+                .focusGroup()
+                .focusProperties { canFocus = isMain }
+        ) {
+            MainScreen(viewModel)
         }
-        AppScreen.Player -> viewModel.selectedMovie?.let { movie ->
-            PlayerScreen(
-                movie = movie,
-                viewModel = viewModel,
-                onBack = { viewModel.navigateBack() }
-            )
+
+        val isGenreActive = viewModel.activeGenreName != null
+        if (isGenreActive) {
+            val isGenreFocused = viewModel.currentScreen == AppScreen.Genre
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .focusRestorer()
+                    .focusGroup()
+                    .focusProperties { canFocus = isGenreFocused }
+            ) {
+                GenreScreenContent(viewModel)
+            }
+        }
+
+        if (viewModel.currentScreen == AppScreen.Details) {
+            viewModel.selectedMovie?.let { movie ->
+                DetailsScreen(
+                    movie = movie,
+                    viewModel = viewModel,
+                    onPlayClick = { viewModel.navigateToPlayer(movie) },
+                    onBackClick = { viewModel.navigateBack() },
+                    onMovieClick = { viewModel.navigateToDetails(it) }
+                )
+            }
+        }
+
+        if (viewModel.currentScreen == AppScreen.Player) {
+            viewModel.selectedMovie?.let { movie ->
+                PlayerScreen(
+                    movie = movie,
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateBack() }
+                )
+            }
         }
     }
 }
@@ -102,7 +134,7 @@ fun GenreScreenContent(viewModel: HomeViewModel) {
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun MainScreen(viewModel: HomeViewModel) {
     val tabFocusRequesters = remember { List(TvTab.entries.size) { FocusRequester() } }
@@ -126,11 +158,13 @@ fun MainScreen(viewModel: HomeViewModel) {
 
             TabRow(
                 selectedTabIndex = viewModel.selectedTab.ordinal,
-                modifier = Modifier.focusProperties {
-                    onEnter = {
-                        tabFocusRequesters[viewModel.selectedTab.ordinal]
+                modifier = Modifier
+                    .focusGroup()
+                    .focusProperties {
+                        onEnter = {
+                            tabFocusRequesters[viewModel.selectedTab.ordinal]
+                        }
                     }
-                }
             ) {
                 TvTab.entries.forEachIndexed { index, tab ->
                     Tab(
@@ -195,21 +229,34 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(450.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Color.Red)
-            }
+                    .height(450.dp)
+                    .background(Color(0xFF1E1E1E))
+            )
         }
         
-        MovieRow("Popular Movies", viewModel.popularMovies, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMorePopular() })
-        MovieRow("Netflix Originals", viewModel.netflixHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
-        MovieRow("Prime Video Picks", viewModel.primeHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
-        MovieRow("Disney+ Collection", viewModel.disneyHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
-        MovieRow("Hindi Hits", viewModel.hindiHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
-        MovieRow("South Indian Blockbusters", viewModel.southHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
-        
-        GenreRow("Explore by Genre", movieGenres, viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+        if (viewModel.isLoading && viewModel.popularMovies.isEmpty()) {
+            ShimmerRow(isLandscape = false)
+            ShimmerRow(isLandscape = true)
+            ShimmerRow(isLandscape = false)
+        } else {
+            if (viewModel.continueWatching.isNotEmpty()) {
+                MovieRow(
+                    title = "Continue Watching",
+                    movies = viewModel.continueWatching,
+                    onMovieClick = { viewModel.navigateToDetails(it) },
+                    onMovieFocus = {}
+                )
+            }
+            
+            MovieRow("Popular Movies", viewModel.popularMovies, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMorePopular() })
+            MovieRow("Netflix Originals", viewModel.netflixHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
+            MovieRow("Prime Video Picks", viewModel.primeHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
+            MovieRow("Disney+ Collection", viewModel.disneyHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreNetflix() })
+            MovieRow("Hindi Hits", viewModel.hindiHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
+            MovieRow("South Indian Blockbusters", viewModel.southHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
+            
+            GenreRow("Explore by Genre", movieGenres, viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+        }
         Spacer(modifier = Modifier.height(48.dp))
     }
 }

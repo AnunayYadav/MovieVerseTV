@@ -40,7 +40,10 @@ fun MovieRow(
             contentPadding = PaddingValues(horizontal = 32.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(movies) { index, movie ->
+            itemsIndexed(
+                items = movies,
+                key = { _, movie -> movie.id }
+            ) { index, movie ->
                 if (index >= movies.size - 5) {
                     LaunchedEffect(movies.size) {
                         onLoadMore()
