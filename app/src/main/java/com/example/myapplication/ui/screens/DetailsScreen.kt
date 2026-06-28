@@ -3,6 +3,7 @@ package com.example.myapplication.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -291,17 +292,21 @@ fun DetailsScreen(
                     }
                 }
 
-                OutlinedButton(
+                var isBackFocused by remember { mutableStateOf(false) }
+                Button(
                     onClick = onBackClick,
-                    colors = ButtonDefaults.outlinedButtonColors(
+                    modifier = Modifier
+                        .onFocusChanged { isBackFocused = it.isFocused }
+                        .border(
+                            width = if (isBackFocused) 2.dp else 1.dp,
+                            color = if (isBackFocused) Color.White else Color.White.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    colors = ButtonDefaults.colors(
                         containerColor = Color.Transparent,
                         contentColor = Color.White,
                         focusedContainerColor = Color.White.copy(alpha = 0.2f),
                         focusedContentColor = Color.White
-                    ),
-                    border = ButtonDefaults.outlinedButtonBorder(
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)),
-                        focusedBorder = BorderStroke(2.dp, Color.White)
                     ),
                     shape = ButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
                 ) {
