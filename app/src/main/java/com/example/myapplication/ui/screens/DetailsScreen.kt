@@ -23,6 +23,8 @@ import com.example.myapplication.model.MovieDetailsResponse
 import com.example.myapplication.ui.HomeViewModel
 import com.example.myapplication.ui.components.MovieRow
 import kotlinx.coroutines.launch
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import kotlin.math.round
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -38,6 +40,12 @@ fun DetailsScreen(
     var episodes by remember { mutableStateOf<List<Episode>>(emptyList()) }
     val scope = rememberCoroutineScope()
     val isTv = movie.mediaType == "tv" || movie.firstAirDate != null
+
+    val initialFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        initialFocusRequester.requestFocus()
+    }
 
     LaunchedEffect(movie.id) {
         scope.launch {
@@ -127,7 +135,9 @@ fun DetailsScreen(
                 items(Providers.NAMES.size) { index ->
                     Button(
                         onClick = { viewModel.selectedProviderIndex = index },
-                        modifier = Modifier.padding(end = 12.dp),
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .then(if (index == viewModel.selectedProviderIndex) Modifier.focusRequester(initialFocusRequester) else Modifier),
                         colors = ButtonDefaults.colors(
                             containerColor = if (viewModel.selectedProviderIndex == index) Color(0xFFE50914) else Color(0xFF1A1A1A)
                         )

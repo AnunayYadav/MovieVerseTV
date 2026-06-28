@@ -31,6 +31,8 @@ import com.example.myapplication.ui.components.GenreItem
 import com.example.myapplication.ui.components.HeroBanner
 import com.example.myapplication.ui.components.MovieRow
 import com.example.myapplication.ui.components.ShimmerRow
+import com.example.myapplication.ui.components.ProviderRow
+import com.example.myapplication.ui.components.ProviderItem
 import com.example.myapplication.ui.screens.SearchScreen
 import com.example.myapplication.ui.screens.DetailsScreen
 import com.example.myapplication.ui.screens.PlayerScreen
@@ -59,26 +61,34 @@ fun AppNavigation(viewModel: HomeViewModel = viewModel()) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         val isMain = viewModel.currentScreen == AppScreen.Main
-        Box(
-            modifier = Modifier
+        val mainModifier = if (isMain) {
+            Modifier
                 .fillMaxSize()
                 .focusRestorer()
                 .focusGroup()
-                .focusProperties { canFocus = isMain }
-        ) {
+        } else {
+            Modifier
+                .fillMaxSize()
+                .focusProperties { canFocus = false }
+        }
+        Box(modifier = mainModifier) {
             MainScreen(viewModel)
         }
 
         val isGenreActive = viewModel.activeGenreName != null
         if (isGenreActive) {
             val isGenreFocused = viewModel.currentScreen == AppScreen.Genre
-            Box(
-                modifier = Modifier
+            val genreModifier = if (isGenreFocused) {
+                Modifier
                     .fillMaxSize()
                     .focusRestorer()
                     .focusGroup()
-                    .focusProperties { canFocus = isGenreFocused }
-            ) {
+            } else {
+                Modifier
+                    .fillMaxSize()
+                    .focusProperties { canFocus = false }
+            }
+            Box(modifier = genreModifier) {
                 GenreScreenContent(viewModel)
             }
         }
@@ -138,6 +148,10 @@ fun GenreScreenContent(viewModel: HomeViewModel) {
 @Composable
 fun MainScreen(viewModel: HomeViewModel) {
     val tabFocusRequesters = remember { List(TvTab.entries.size) { FocusRequester() } }
+
+    LaunchedEffect(Unit) {
+        tabFocusRequesters[viewModel.selectedTab.ordinal].requestFocus()
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -218,6 +232,17 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
             GenreItem(10749, "Romance", "")
         )
     }
+    val providers = remember {
+        listOf(
+            ProviderItem(8, "Netflix", "https://image.tmdb.org/t/p/w500/p1e2J0214yBBG0142g4Urzn76R3.jpg"),
+            ProviderItem(119, "Amazon Prime Video", "https://image.tmdb.org/t/p/w500/dgPueyEd31OntPOkG4k645s732m.jpg"),
+            ProviderItem(350, "Apple TV", "https://image.tmdb.org/t/p/w500/2t73JgD1wQ525U57Z0241z47547.jpg"),
+            ProviderItem(337, "Disney Plus", "https://image.tmdb.org/t/p/w500/peURIl1G4Z476X2e2x7W4O5458Z.jpg"),
+            ProviderItem(15, "Hulu", "https://image.tmdb.org/t/p/w500/zI06869g202zU6Vz2yYy49zY59Y.jpg"),
+            ProviderItem(283, "Crunchyroll", "https://image.tmdb.org/t/p/w500/or68Spthn1K8Q49202zUe2c49zE.jpg"),
+            ProviderItem(384, "HBO Max", "https://image.tmdb.org/t/p/w500/gj47r4ptue5a44jZuCUIb52v4gy.jpg")
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
         if (viewModel.trendingMovies.isNotEmpty()) {
@@ -256,6 +281,7 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
             MovieRow("South Indian Blockbusters", viewModel.southHome, onMovieClick = { viewModel.navigateToDetails(it) }, onMovieFocus = {}, onLoadMore = { viewModel.loadMoreRegional() })
             
             GenreRow("Explore by Genre", movieGenres, viewModel.movieGenrePosters, onGenreClick = { id, name -> viewModel.onGenreClick(id, name) })
+            ProviderRow("Browse by Provider", providers, onProviderClick = { id, name -> viewModel.onProviderClick(id, name) })
         }
         Spacer(modifier = Modifier.height(48.dp))
     }

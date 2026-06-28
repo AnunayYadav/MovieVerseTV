@@ -119,10 +119,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     var isLoading by mutableStateOf(false)
 
-    // Genre Filtering State
+    // Genre & Provider Filtering State
     var activeGenreName by mutableStateOf<String?>(null)
     var activeGenreId by mutableIntStateOf(0)
     var activeGenreTab by mutableStateOf(TvTab.Home)
+    var isProviderFilter by mutableStateOf(false)
     val genreMovies = mutableStateListOf<Movie>()
     var genrePage = 1
 
@@ -175,8 +176,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onGenreClick(genreId: Int, genreName: String) {
+        isProviderFilter = false
         activeGenreName = genreName
         activeGenreId = genreId
+        activeGenreTab = selectedTab
+        genreMovies.clear()
+        genrePage = 1
+        currentScreen = AppScreen.Genre
+        loadMoreGenreMovies()
+    }
+
+    fun onProviderClick(providerId: Int, providerName: String) {
+        isProviderFilter = true
+        activeGenreName = providerName
+        activeGenreId = providerId
         activeGenreTab = selectedTab
         genreMovies.clear()
         genrePage = 1
@@ -187,13 +200,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun loadMoreGenreMovies() {
         viewModelScope.launch {
             try {
-                val response = when (activeGenreTab) {
-                    TvTab.TvShows -> RetrofitClient.tmdbApi.getTvByGenre(activeGenreId, page = genrePage++)
-                    TvTab.Anime -> RetrofitClient.tmdbApi.getAnime(genreId = "16,$activeGenreId", page = genrePage++)
-                    else -> RetrofitClient.tmdbApi.getMoviesByGenre(activeGenreId, page = genrePage++)
+                val response = if (isProviderFilter) {
+                    when (activeGenreTab) {
+                        TvTab.TvShows -> RetrofitClient.tmdbApi.getTvByProvider(activeGenreId, page = genrePage++)
+                        else -> RetrofitClient.tmdbApi.getMoviesByProvider(activeGenreId, page = genrePage++)
+                    }
+                } else {
+                    when (activeGenreTab) {
+                        TvTab.TvShows -> RetrofitClient.tmdbApi.getTvByGenre(activeGenreId, page = genrePage++)
+                        TvTab.Anime -> RetrofitClient.tmdbApi.getAnime(genreId = "16,$activeGenreId", page = genrePage++)
+                        else -> RetrofitClient.tmdbApi.getMoviesByGenre(activeGenreId, page = genrePage++)
+                    }
                 }
                 genreMovies.addAll(filterReleased(response.results))
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -256,6 +278,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             AppScreen.Genre -> {
                 currentScreen = AppScreen.Main
                 activeGenreName = null
+                isProviderFilter = false
             }
             AppScreen.Main -> {}
         }
