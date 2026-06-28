@@ -139,7 +139,8 @@ fun GenreScreenContent(viewModel: HomeViewModel) {
             movies = viewModel.genreMovies, 
             onMovieClick = { viewModel.navigateToDetails(it) }, 
             onMovieFocus = {},
-            onLoadMore = { viewModel.loadMoreGenreMovies() }
+            onLoadMore = { viewModel.loadMoreGenreMovies() },
+            requestInitialFocus = true
         )
     }
 }
@@ -178,6 +179,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                         onEnter = {
                             tabFocusRequesters[viewModel.selectedTab.ordinal]
                         }
+                        up = FocusRequester.Cancel
                     }
             ) {
                 TvTab.entries.forEachIndexed { index, tab ->

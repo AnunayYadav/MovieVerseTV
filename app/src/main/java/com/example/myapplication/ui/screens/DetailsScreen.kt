@@ -25,6 +25,7 @@ import com.example.myapplication.ui.components.MovieRow
 import kotlinx.coroutines.launch
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import kotlin.math.round
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -131,7 +132,11 @@ fun DetailsScreen(
 
             // FIX: Using standardized provider list from Providers.kt
             Text("Select Source:", style = MaterialTheme.typography.titleMedium, color = Color.White)
-            LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
+            LazyRow(
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
+                    .focusProperties { up = FocusRequester.Cancel }
+            ) {
                 items(Providers.NAMES.size) { index ->
                     Button(
                         onClick = { viewModel.selectedProviderIndex = index },

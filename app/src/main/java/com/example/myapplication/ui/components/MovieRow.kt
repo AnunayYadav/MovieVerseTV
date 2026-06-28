@@ -8,7 +8,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -25,20 +29,38 @@ fun MovieRow(
     isLandscape: Boolean = false,
     onMovieClick: (Movie) -> Unit,
     onMovieFocus: (Movie) -> Unit,
-    onLoadMore: () -> Unit = {}
+    onLoadMore: () -> Unit = {},
+    requestInitialFocus: Boolean = false
 ) {
     if (movies.isEmpty()) return
 
+    val firstItemFocusRequester = remember { FocusRequester() }
+
+    if (requestInitialFocus) {
+        LaunchedEffect(movies) {
+            if (movies.isNotEmpty()) {
+                firstItemFocusRequester.requestFocus()
+            }
+        }
+    }
+
     Column(modifier = modifier.padding(vertical = 12.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color.White.copy(alpha = 0.9f),
-            modifier = Modifier.padding(start = 32.dp, bottom = 12.dp)
-        )
+        if (title.isNotEmpty()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White.copy(alpha = 0.9f),
+                modifier = Modifier.padding(start = 32.dp, bottom = 12.dp)
+            )
+        }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = if (requestInitialFocus) {
+                Modifier.focusProperties { up = FocusRequester.Cancel }
+            } else {
+                Modifier
+            }
         ) {
             itemsIndexed(
                 items = movies,
@@ -53,7 +75,12 @@ fun MovieRow(
                     movie = movie,
                     isLandscape = isLandscape,
                     onClick = { onMovieClick(movie) },
-                    onFocus = { onMovieFocus(movie) }
+                    onFocus = { onMovieFocus(movie) },
+                    modifier = if (index == 0 && requestInitialFocus) {
+                        Modifier.focusRequester(firstItemFocusRequester)
+                    } else {
+                        Modifier
+                    }
                 )
             }
         }

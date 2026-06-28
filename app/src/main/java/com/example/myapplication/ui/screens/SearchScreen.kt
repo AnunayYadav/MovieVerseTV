@@ -17,10 +17,18 @@ import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import com.example.myapplication.ui.HomeViewModel
 import com.example.myapplication.ui.components.MovieCard
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun SearchScreen(viewModel: HomeViewModel) {
+    val searchFocusRequester = remember { FocusRequester() }
+    
+    LaunchedEffect(Unit) {
+        searchFocusRequester.requestFocus()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,7 +49,9 @@ fun SearchScreen(viewModel: HomeViewModel) {
             OutlinedTextField(
                 value = viewModel.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChange(it) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(searchFocusRequester),
                 placeholder = { Text("Search movies, shows, anime...", color = Color.Gray) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 singleLine = true,
