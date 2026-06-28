@@ -142,40 +142,37 @@ fun ProviderRow(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun ProviderCard(provider: ProviderItem, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(100.dp)
-    ) {
-        Card(
-            onClick = onClick,
-            modifier = Modifier
-                .size(80.dp)
-                .aspectRatio(1f),
-            shape = CardDefaults.shape(RoundedCornerShape(16.dp)),
-            scale = CardDefaults.scale(focusedScale = 1.15f),
-            border = CardDefaults.border(
-                focusedBorder = Border(
-                    border = BorderStroke(2.dp, Color.White),
-                    inset = 0.dp
-                )
+    var isFocused by remember { mutableStateOf(false) }
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .width(160.dp)
+            .height(90.dp)
+            .onFocusChanged { isFocused = it.isFocused },
+        shape = CardDefaults.shape(RoundedCornerShape(12.dp)),
+        scale = CardDefaults.scale(focusedScale = 1.1f),
+        border = CardDefaults.border(
+            focusedBorder = Border(
+                border = BorderStroke(2.dp, Color.White),
+                inset = 0.dp
             )
+        )
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(16.dp)
         ) {
             AsyncImage(
                 model = provider.logoUrl,
                 contentDescription = provider.name,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = provider.name,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.7f),
-            maxLines = 2,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 

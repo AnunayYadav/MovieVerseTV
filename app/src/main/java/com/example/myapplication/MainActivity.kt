@@ -328,13 +328,13 @@ fun HomeScreenContent(viewModel: HomeViewModel) {
     }
     val providers = remember {
         listOf(
-            ProviderItem(8, "Netflix", "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/256px-Netflix_2015_logo.svg.png"),
-            ProviderItem(119, "Amazon Prime Video", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Amazon_Prime_Video_logo.svg/256px-Amazon_Prime_Video_logo.svg.png"),
-            ProviderItem(350, "Apple TV", "https://upload.wikimedia.org/wikipedia/commons/1/16/AppleTVLogo.png"),
-            ProviderItem(337, "Disney+ Hotstar", "https://upload.wikimedia.org/wikipedia/commons/f/fe/JioHotstar_logo.jpg"),
-            ProviderItem(15, "Hulu", "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Hulu_logo_%282018%29.svg/256px-Hulu_logo_%282018%29.svg.png"),
-            ProviderItem(283, "Crunchyroll", "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Crunchyroll_Logo.svg/256px-Crunchyroll_Logo.svg.png"),
-            ProviderItem(384, "HBO Max", "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/HBO_Max_%282025%29.svg/256px-HBO_Max_%282025%29.svg.png")
+            ProviderItem(8, "Netflix", "https://logo.clearbit.com/netflix.com"),
+            ProviderItem(119, "Amazon Prime Video", "https://logo.clearbit.com/primevideo.com"),
+            ProviderItem(350, "Apple TV", "https://logo.clearbit.com/apple.com"),
+            ProviderItem(337, "Disney+ Hotstar", "https://logo.clearbit.com/hotstar.com"),
+            ProviderItem(15, "Hulu", "https://logo.clearbit.com/hulu.com"),
+            ProviderItem(283, "Crunchyroll", "https://logo.clearbit.com/crunchyroll.com"),
+            ProviderItem(384, "HBO Max", "https://logo.clearbit.com/max.com")
         )
     }
 
