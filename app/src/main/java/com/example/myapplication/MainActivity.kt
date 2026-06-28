@@ -235,39 +235,43 @@ fun MainScreen(viewModel: HomeViewModel) {
         Box(modifier = Modifier.fillMaxSize()) {
             val selected = viewModel.selectedTab
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = if (selected == TvTab.Home) 1f else 0f }
-                    .focusProperties { canFocus = selected == TvTab.Home }
-            ) {
+            // Home
+            val homeModifier = if (selected == TvTab.Home) {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+            } else {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+            }
+            Box(modifier = homeModifier) {
                 HomeScreenContent(viewModel)
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = if (selected == TvTab.TvShows) 1f else 0f }
-                    .focusProperties { canFocus = selected == TvTab.TvShows }
-            ) {
+            // TV Shows
+            val tvModifier = if (selected == TvTab.TvShows) {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+            } else {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+            }
+            Box(modifier = tvModifier) {
                 TvShowsScreenContent(viewModel)
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = if (selected == TvTab.Anime) 1f else 0f }
-                    .focusProperties { canFocus = selected == TvTab.Anime }
-            ) {
+            // Anime
+            val animeModifier = if (selected == TvTab.Anime) {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+            } else {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+            }
+            Box(modifier = animeModifier) {
                 AnimeScreenContent(viewModel)
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = if (selected == TvTab.Search) 1f else 0f }
-                    .focusProperties { canFocus = selected == TvTab.Search }
-            ) {
+            // Search
+            val searchModifier = if (selected == TvTab.Search) {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+            } else {
+                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+            }
+            Box(modifier = searchModifier) {
                 SearchScreen(viewModel)
             }
         }

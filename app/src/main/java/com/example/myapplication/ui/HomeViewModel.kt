@@ -167,12 +167,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadContinueWatching()
-        fetchAllData()
-        fetchGenrePosters()
+        fetchHomeData()
     }
 
     fun onTabSelected(tab: TvTab) {
         selectedTab = tab
+        when (tab) {
+            TvTab.TvShows -> if (popularTv.isEmpty()) fetchTvData()
+            TvTab.Anime -> if (trendingAnime.isEmpty()) fetchAnimeData()
+            TvTab.Home -> if (popularMovies.isEmpty()) fetchHomeData()
+            else -> {}
+        }
     }
 
     fun onGenreClick(genreId: Int, genreName: String) {
@@ -219,43 +224,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun fetchGenrePosters() {
-        val movieGenres = listOf(28, 12, 16, 35, 18, 27, 878, 10749)
-        movieGenres.forEach { id ->
-            viewModelScope.launch {
-                try {
-                    val movieRes = RetrofitClient.tmdbApi.getMoviesByGenre(id, page = 1)
-                    movieRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
-                        movieGenrePosters[id] = it
-                    }
-                } catch (e: Exception) { e.printStackTrace() }
-            }
-        }
-
-        val tvGenres = listOf(10759, 16, 35, 18, 10765, 9648, 80)
-        tvGenres.forEach { id ->
-            viewModelScope.launch {
-                try {
-                    val tvRes = RetrofitClient.tmdbApi.getTvByGenre(id, page = 1)
-                    tvRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
-                        tvGenrePosters[id] = it
-                    }
-                } catch (e: Exception) { e.printStackTrace() }
-            }
-        }
-
-        val animeGenres = listOf(28, 12, 35, 18, 27, 878, 10749)
-        animeGenres.forEach { id ->
-            viewModelScope.launch {
-                try {
-                    val animeGenreRes = RetrofitClient.tmdbApi.getAnime(genreId = "16,$id", page = 1)
-                    animeGenreRes.results.firstOrNull { it.backdropPath != null }?.fullBackdropPath?.let {
-                        animeGenrePosters[id] = it
-                    }
-                } catch (e: Exception) { e.printStackTrace() }
-            }
-        }
-    }
+    // Genre posters logic removed as gradients are rendered instead
 
     fun navigateToDetails(movie: Movie) {
         selectedMovie = movie
@@ -286,20 +255,42 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateFeaturedMovie(movie: Movie) {}
 
-    private fun fetchAllData() {
+    private fun fetchHomeData() {
         viewModelScope.launch {
             isLoading = true
             try {
                 loadTrendingInternal()
-                delay(100)
+                delay(150)
                 loadPopularInternal()
-                delay(100)
+                delay(150)
                 loadNetflixInternal()
-                delay(100)
+                delay(150)
                 loadRegionalInternal()
-                delay(100)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    private fun fetchTvData() {
+        viewModelScope.launch {
+            isLoading = true
+            try {
                 loadTvInternal()
-                delay(100)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    private fun fetchAnimeData() {
+        viewModelScope.launch {
+            isLoading = true
+            try {
                 loadAnimeInternal()
             } catch (e: Exception) {
                 e.printStackTrace()
