@@ -153,6 +153,7 @@ fun GenreScreenContent(viewModel: HomeViewModel) {
 @Composable
 fun MainScreen(viewModel: HomeViewModel) {
     val tabFocusRequesters = remember { List(TvTab.entries.size) { FocusRequester() } }
+    val contentFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         tabFocusRequesters[viewModel.selectedTab.ordinal].requestFocus()
@@ -184,6 +185,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                             tabFocusRequesters[viewModel.selectedTab.ordinal]
                         }
                         up = FocusRequester.Cancel
+                        down = contentFocusRequester
                     }
             ) {
                 TvTab.entries.forEachIndexed { index, tab ->
@@ -201,6 +203,9 @@ fun MainScreen(viewModel: HomeViewModel) {
                         modifier = Modifier
                             .focusRequester(tabFocusRequesters[index])
                             .onFocusChanged { isTabFocused = it.isFocused }
+                            .focusProperties {
+                                down = contentFocusRequester
+                            }
                     ) {
                         Text(
                             text = when(tab) {
@@ -212,7 +217,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                             modifier = Modifier
                                 .background(
                                     color = when {
-                                        isTabFocused -> Color.White.copy(alpha = 0.2f)
+                                        isTabFocused -> Color.Transparent
                                         isSelected -> Color(0xFFE50914).copy(alpha = 0.15f)
                                         else -> Color.Transparent
                                     },
@@ -220,7 +225,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 )
                                 .padding(horizontal = 20.dp, vertical = 10.dp),
                             color = when {
-                                isTabFocused -> Color.White
+                                isTabFocused -> Color.Black
                                 isSelected -> Color(0xFFE50914)
                                 else -> Color.White.copy(alpha = 0.6f)
                             },
@@ -237,9 +242,16 @@ fun MainScreen(viewModel: HomeViewModel) {
 
             // Home
             val homeModifier = if (selected == TvTab.Home) {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 1f }
+                    .focusRequester(contentFocusRequester)
+                    .focusGroup()
             } else {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 0f }
+                    .focusProperties { canFocus = false }
             }
             Box(modifier = homeModifier) {
                 HomeScreenContent(viewModel)
@@ -247,9 +259,16 @@ fun MainScreen(viewModel: HomeViewModel) {
 
             // TV Shows
             val tvModifier = if (selected == TvTab.TvShows) {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 1f }
+                    .focusRequester(contentFocusRequester)
+                    .focusGroup()
             } else {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 0f }
+                    .focusProperties { canFocus = false }
             }
             Box(modifier = tvModifier) {
                 TvShowsScreenContent(viewModel)
@@ -257,9 +276,16 @@ fun MainScreen(viewModel: HomeViewModel) {
 
             // Anime
             val animeModifier = if (selected == TvTab.Anime) {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 1f }
+                    .focusRequester(contentFocusRequester)
+                    .focusGroup()
             } else {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 0f }
+                    .focusProperties { canFocus = false }
             }
             Box(modifier = animeModifier) {
                 AnimeScreenContent(viewModel)
@@ -267,9 +293,16 @@ fun MainScreen(viewModel: HomeViewModel) {
 
             // Search
             val searchModifier = if (selected == TvTab.Search) {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 1f }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 1f }
+                    .focusRequester(contentFocusRequester)
+                    .focusGroup()
             } else {
-                Modifier.fillMaxSize().graphicsLayer { alpha = 0f }.focusProperties { canFocus = false }
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 0f }
+                    .focusProperties { canFocus = false }
             }
             Box(modifier = searchModifier) {
                 SearchScreen(viewModel)
